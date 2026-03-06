@@ -8,14 +8,15 @@ const path = require('path');
  
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 800,
+    height: 600,
+    resizable: false,
     webPreferences: {
       nodeIntegration: false, // 禁用 Node.js 集成（安全考虑）
       contextIsolation: true, // 启用上下文隔离
       preload: path.join(import.meta.dirname, 'preload.ts'), // 预加载脚本
     },
-    icon: path.join(__dirname, './icon.png') // 这里放你的图标
+    icon: path.join(import.meta.dirname, 'icon.png') // 这里放你的图标
   });
 
   // 完全移除菜单栏

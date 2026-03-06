@@ -147,5 +147,11 @@ span { display: block; margin-top: 5px; font-size: 14px; color: #555; word-break
   color: #333;
 }
 
-.tag { font-size: 12px; color: #999; margin-top: 20px; }
+.tag {
+  font-size: 12px;
+  color: #999;
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
 </style>
