@@ -11,7 +11,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    App: typeof import('./App.vue')['default']
+    Home: typeof import('./views/Home.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SystemSettingDialog: typeof import('./views/components/dialog/SystemSettingDialog.vue')['default']
   }
 }

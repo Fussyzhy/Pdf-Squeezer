@@ -11,8 +11,10 @@
     "electron:build": "npm run build && electron-builder"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "element-plus": "^2.13.4",
     "pinia": "^3.0.4",
     "vue": "^3.5.29",
     "vue-router": "^5.0.3",

@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" v-loading="isLoading">
     <h2>PDF 压缩</h2>
 
     <div
@@ -10,21 +10,27 @@
       @drop="handleDrop"
       @click="handleClickUpload"
     >
+      <div class="clearFile">
+        <el-icon @click.stop="clearInputFile"><Close /></el-icon>
+      </div>
       <span id="inputPath">
         {{ inputFile.name || '点击/拖拽 PDF 文件到这里上传' }}
       </span>
     </div>
-
-    <button @click="handleSelectOutput">选择输出文件夹</button>
-    <span id="outputPath">{{ outputFolder || '未选择文件夹' }}</span>
+    <!-- <button @click="handleSelectOutput">选择输出文件夹</button>
+    <span id="outputPath">{{ outputFolder || '未选择文件夹' }}</span> -->
 
     <button @click="handleCompress">开始压缩</button>
-    <p id="status">{{ status }}</p>
+    <div class="setting-btn">
+      <el-icon @click="handleOpenSettings"><Setting /></el-icon>
+    </div>
   </div>
   <div class="tag">@Design by Haoyang</div>
+  <system-setting-dialog v-model="settingsVisible" />
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 
 // 输入文件
@@ -35,7 +41,7 @@ const inputFile = ref<{ name: string; buffer: ArrayBuffer | null }>({
 
 // 输出文件夹
 const outputFolder = ref(localStorage.getItem('outputFolder') || '');
-const status = ref('');
+const isLoading = ref(false);
 const dropHover = ref(false);
 
 const updateOutputPath = (folder: string) => {
@@ -80,22 +86,42 @@ const handleSelectOutput = async () => {
 
 // 压缩 PDF
 const handleCompress = async () => {
-  if (!inputFile.value.buffer || !outputFolder.value) {
-    alert('请选择输入和输出文件夹');
+  if(!inputFile.value.buffer ) {
+    ElMessage.error('请上传 PDF 文件！');
     return;
   }
-  status.value = '正在压缩...';
+  if (!outputFolder.value) {
+    ElMessage.error('请设置输出文件夹！');
+    return;
+  }
+  isLoading.value = true;
   try {
     const bufferArray = new Uint8Array(inputFile.value.buffer);
     const result = await window.electronAPI.compressPDFBuffer(
       { name: inputFile.value.name, buffer: bufferArray },
       outputFolder.value
     );
-    status.value = result.success ? '压缩完成！' : '压缩失败！' + result.error;
+    if(result.success) {
+      ElMessage.success('压缩完成！');
+    } else {
+      ElMessage.error('压缩失败！');
+    }
+    isLoading.value = false;
   } catch (err: any) {
-    status.value = '压缩失败！' + err?.message;
+    ElMessage.error('压缩失败！');
+    isLoading.value = false;
   }
 };
+
+const settingsVisible = ref(false);
+const handleOpenSettings = () => {
+  settingsVisible.value = true;
+}
+
+const clearInputFile = () => {
+  inputFile.value.name = '';
+  inputFile.value.buffer = null;
+}
 </script>
 
 <style scoped lang="scss">
@@ -106,12 +132,27 @@ const handleCompress = async () => {
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   text-align: center;
   width: 450px;
+  position: relative;
+
+  .setting-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.3s;
+
+    &:hover {
+      color: #409eff;
+    }
+  }
 }
 
 h2 { margin-bottom: 30px; color: #333; }
 
 button {
-  background-color: #4CAF50;
+  background-color: #409eff;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -123,13 +164,11 @@ button {
 }
 
 button:hover {
-  background-color: #45a049;
+  background-color: #40a0ffd0;
   transform: translateY(-2px);
 }
 
 span { display: block; margin-top: 5px; font-size: 14px; color: #555; word-break: break-all; }
-
-#status { margin-top: 20px; font-weight: bold; color: #007BFF; }
 
 #dropArea {
   border: 2px dashed #aaa;
@@ -137,14 +176,38 @@ span { display: block; margin-top: 5px; font-size: 14px; color: #555; word-break
   padding: 30px;
   margin: 20px 0;
   color: #777;
-  transition: border-color 0.3s, background 0.3s;
+  transition: all 0.3s ease;
   cursor: pointer;
-}
+  position: relative;
 
-#dropArea.hover {
-  border-color: #4CAF50;
-  background: #f0fff0;
-  color: #333;
+  .clearFile {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #585858;
+    transition: all 0.3s;
+    opacity: 0;
+
+    &:hover {
+      color: #409eff;
+    }
+  }
+
+  &:hover {
+    border-color: #409eff;
+    background: #40a0ff1e;
+    color: #333;
+
+    #inputPath {
+      color: #409eff;
+    }
+
+    .clearFile {
+      opacity: 1;
+    }
+  }
 }
 
 .tag {

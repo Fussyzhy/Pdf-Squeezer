@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [
     vue(),
     Components({
-      dirs: ["src/components"], // 自动扫描的组件目录
+      dirs: ["src"], // 自动扫描的组件目录
       extensions: ["vue"],      // 扫描的文件类型
       deep: true,               // 是否递归扫描子目录
       dts: "src/components.d.ts", // 自动生成类型声明
