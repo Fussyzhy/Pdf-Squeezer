@@ -40,12 +40,10 @@ const inputFile = ref<{ name: string; buffer: ArrayBuffer | null }>({
 });
 
 // 输出文件夹
-const outputFolder = ref(localStorage.getItem('outputFolder') || '');
 const isLoading = ref(false);
 const dropHover = ref(false);
 
 const updateOutputPath = (folder: string) => {
-  outputFolder.value = folder;
   localStorage.setItem('outputFolder', folder);
 };
 
@@ -90,7 +88,8 @@ const handleCompress = async () => {
     ElMessage.error('请上传 PDF 文件！');
     return;
   }
-  if (!outputFolder.value) {
+  const outputFolder = localStorage.getItem('outputFolder');
+  if (!outputFolder) {
     ElMessage.error('请设置输出文件夹！');
     return;
   }
@@ -99,7 +98,7 @@ const handleCompress = async () => {
     const bufferArray = new Uint8Array(inputFile.value.buffer);
     const result = await window.electronAPI.compressPDFBuffer(
       { name: inputFile.value.name, buffer: bufferArray },
-      outputFolder.value
+      outputFolder
     );
     if(result.success) {
       ElMessage.success('压缩完成！');

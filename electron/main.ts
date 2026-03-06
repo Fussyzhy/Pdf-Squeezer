@@ -30,6 +30,8 @@ function createWindow() {
     // 生产环境加载打包后的 Vue3 应用
     win.loadFile(path.join(process.cwd() + '/resources/vue/index.html'));
   }
+
+  win.webContents.openDevTools()
 }
  
 // Electron 初始化完成后创建窗口

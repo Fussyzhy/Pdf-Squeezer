@@ -16,7 +16,6 @@ function getGSCommand() {
 
 // 示例：压缩 PDF
 export function compressPDF(buffer: Buffer, outputFile: string, level = "ebook") {
-  console.log(buffer, outputFile, level);
   return new Promise((resolve, reject) => {
     // 创建临时文件
     const tempFile = path.join(os.tmpdir(), `temp_${Date.now()}.pdf`);

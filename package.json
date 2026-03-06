@@ -1,6 +1,7 @@
 {
-  "name": "vue-electron",
+  "name": "pdf-squeezer",
   "version": "0.0.0",
+  "description": "A lightweight PDF compression tool built with Electron and Vue 3, using Ghostscript for high-quality PDF compression.",
   "private": true,
   "type": "module",
   "main": "electron/main.ts",
@@ -40,10 +41,10 @@
   },
   "build": {
     "appId": "com.example.vue-electron",
-    "productName": "Vue3 Electron App",
+    "productName": "Pdf Squeezer",
     "directories": {
       "buildResources": "assets",
-      "output": "/dist/electron-dist"
+      "output": "electron-dist"
     },
     "extraResources": [
       {
@@ -51,8 +52,17 @@
         "to": "vue/"
       }
     ],
+    "asar": false,
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "./electron/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "./electron/icon.ico",
+      "uninstallerIcon": "./electron/icon.ico",
+      "installerHeaderIcon": "./electron/icon.ico"
     }
   }
 }
