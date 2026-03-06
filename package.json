@@ -43,7 +43,7 @@
     "productName": "Vue3 Electron App",
     "directories": {
       "buildResources": "assets",
-      "output": "electron-dist"
+      "output": "/dist/electron-dist"
     },
     "extraResources": [
       {
