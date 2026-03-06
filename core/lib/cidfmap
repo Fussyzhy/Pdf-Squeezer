@@ -1,0 +1,31 @@
+%!
+% cidfmap generated automatically by mkcidfm.ps from fonts found in
+%   C:/WINDOWS/Fonts
+
+% Substitutions
+/KaiTi << /Path (C:/WINDOWS/Fonts/simkai.ttf) /CSI [(GB1) 2] /SubfontID 0 /FileType /TrueType >> ;
+/LiSu << /Path (C:/WINDOWS/Fonts/simli.ttf) /CSI [(GB1) 2] /SubfontID 0 /FileType /TrueType >> ;
+/SimHei << /Path (C:/WINDOWS/Fonts/simhei.ttf) /CSI [(GB1) 2] /SubfontID 0 /FileType /TrueType >> ;
+/YouYuan << /Path (C:/WINDOWS/Fonts/simyou.ttf) /CSI [(GB1) 2] /SubfontID 0 /FileType /TrueType >> ;
+/MalgunGothicBold << /Path (C:/WINDOWS/Fonts/malgunbd.ttf) /CSI [(Korea1) 3] /SubfontID 0 /FileType /TrueType >> ;
+/MS-UI-Gothic << /Path (C:/WINDOWS/Fonts/msgothic.ttc) /CSI [(Japan1) 3] /SubfontID 2 /FileType /TrueType >> ;
+/MalgunGothicRegular << /Path (C:/WINDOWS/Fonts/malgun.ttf) /CSI [(Korea1) 3] /SubfontID 0 /FileType /TrueType >> ;
+/SimSun << /Path (C:/WINDOWS/Fonts/simsun.ttc) /CSI [(GB1) 2] /SubfontID 0 /FileType /TrueType >> ;
+/NSimSun << /Path (C:/WINDOWS/Fonts/simsun.ttc) /CSI [(GB1) 2] /SubfontID 1 /FileType /TrueType >> ;
+/MS-Gothic << /Path (C:/WINDOWS/Fonts/msgothic.ttc) /CSI [(Japan1) 3] /SubfontID 0 /FileType /TrueType >> ;
+/FangSong << /Path (C:/WINDOWS/Fonts/simfang.ttf) /CSI [(GB1) 2] /SubfontID 0 /FileType /TrueType >> ;
+/MS-PGothic << /Path (C:/WINDOWS/Fonts/msgothic.ttc) /CSI [(Japan1) 3] /SubfontID 1 /FileType /TrueType >> ;
+
+% Aliases
+/AdobeMyungjoStd-Medium /MalgunGothicRegular ;
+/STSong-Light /SimSun ;
+/AdobeSongStd-Light /SimSun ;
+/HYRGoThic-Medium /MalgunGothicRegular ;
+/STHeiti-Regular /SimHei ;
+/STKaiti-Regular /KaiTi ;
+/STFangsong-Light /FangSong ;
+/GothicBBB-Medium /MS-Gothic ;
+/HYSMyeongJo-Medium /MalgunGothicRegular ;
+/HYGoThic-Medium /MalgunGothicRegular ;
+/HeiseiKakuGo-W5 /MS-Gothic ;
+/AdobeHeitiStd-Regular /SimHei ;
