@@ -30,8 +30,6 @@ function createWindow() {
     // 生产环境加载打包后的 Vue3 应用
     win.loadFile(path.join(process.cwd() + '/resources/vue/index.html'));
   }
-
-  win.webContents.openDevTools()
 }
  
 // Electron 初始化完成后创建窗口
@@ -45,14 +43,14 @@ ipcMain.handle("select-output-folder", async () => {
 });
 
 // 压缩文件夹内所有 PDF
-ipcMain.handle("compress-pdf-buffer", async (event, file, outputFolder) => {
+ipcMain.handle("compress-pdf-buffer", async (event: any, file: any, outputFolder: any) => {
   const buffer = Buffer.from(file.buffer);
   const [name, ext] = file.name.split('.');
   try {
     const outputFile = path.join(outputFolder, name + '-' + Date.now() + '.' + ext);
     await compressPDF(buffer, outputFile, "ebook");
     return { success: true, output: outputFile };
-  } catch (err) {
+  } catch (err: any) {
     return { success: false, error: err.message };
   }
 });
