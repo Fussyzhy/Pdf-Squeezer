@@ -1,0 +1,52 @@
+{
+  "name": "vue-electron",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "main.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.29",
+    "vue-router": "^5.0.3",
+    "wait-on": "^9.0.4"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4",
+    "@types/node": "^24.11.0",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "@vue/tsconfig": "^0.8.1",
+    "electron": "^40.8.0",
+    "electron-builder": "23.6.0",
+    "npm-run-all2": "^8.0.4",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-vue-devtools": "^8.0.6",
+    "vue-tsc": "^3.2.5"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "build": {
+    "appId": "com.example.vue-electron",
+    "productName": "Vue3 Electron App",
+    "directories": {
+      "buildResources": "assets",
+      "output": "electron-dist"
+    },
+    "extraResources": [
+      {
+        "from": "dist/",
+        "to": "vue/"
+      }
+    ],
+    "win": { "target": "nsis" }
+  }
+}
