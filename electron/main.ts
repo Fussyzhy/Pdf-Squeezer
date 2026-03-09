@@ -1,6 +1,6 @@
 import { createRequire } from 'module';
 import fs from 'fs';
-import { compressPDF } from './util/pdf-editor.ts';
+import { compressPDF, mergePDF } from './util/pdf-editor.ts';
 const require = createRequire(import.meta.url);
  
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
@@ -10,13 +10,13 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
-    resizable: false,
+    // resizable: false,
     webPreferences: {
       nodeIntegration: false, // 禁用 Node.js 集成（安全考虑）
       contextIsolation: true, // 启用上下文隔离
       preload: path.join(import.meta.dirname, 'preload.ts'), // 预加载脚本
     },
-    icon: path.join(import.meta.dirname, 'icon.png') // 这里放你的图标
+    icon: path.join(import.meta.dirname, 'icon.ico') // 这里放你的图标
   });
 
   // 完全移除菜单栏
@@ -42,37 +42,61 @@ ipcMain.handle("select-output-folder", async () => {
   return outputFolder;
 });
 
-// 压缩文件夹内所有 PDF
-ipcMain.handle("compress-pdf-buffer", async (event: any, file: any, outputFolder: any) => {
-  const buffer = Buffer.from(file.buffer);
-  const [name, ext] = file.name.split('.');
-  try {
-    const outputFile = path.join(outputFolder, name + '-' + Date.now() + '.' + ext);
-    await compressPDF(buffer, outputFile, "ebook");
-    return { success: true, output: outputFile };
-  } catch (err: any) {
-    return { success: false, error: err.message };
-  }
-});
-
-ipcMain.handle('select-input-file', async () => {
+ipcMain.handle('select-input-files', async () => {
   const result = await dialog.showOpenDialog({
-    title: '选择一个文件',
-    properties: ['openFile'],
+    title: '选择 PDF 文件',
+    properties: ['openFile', 'multiSelections'], // <-- 允许多选
     filters: [
       { name: 'PDF 文件', extensions: ['pdf'] },
       { name: '所有文件', extensions: ['*'] }
     ]
   });
 
-  if (result.canceled) return null;
+  if (result.canceled || result.filePaths.length === 0) return [];
 
-  const filePath = result.filePaths[0];
-  const buffer = fs.readFileSync(filePath); // 读取文件内容为 Buffer
-  const fileName = path.basename(filePath);
+  // 读取所有文件
+  const files = result.filePaths.map((filePath) => {
+    const buffer = fs.readFileSync(filePath); // 读取文件内容
+    const fileName = path.basename(filePath);
+    return { name: fileName, buffer };
+  });
 
-  return {
-    name: fileName,   // 文件名
-    buffer           // 文件内容 Buffer
-  };
+  return files; // 返回文件数组
+});
+
+// 压缩文件夹内所有 PDF
+ipcMain.handle("compress-pdf-buffer", async (event: any, files: any[], outputFolder: any) => {
+  const filesToCompress = files.map((file, index) => {
+    const [name, ext] = file.name.split('.');
+    return {
+      name: file.name,
+      buffer: Buffer.from(file.buffer),
+      outputFile: path.join(outputFolder, name + '-' + Date.now() + index + '.' + ext),
+    }
+  });
+  
+  try {
+    await compressPDF(filesToCompress, "ebook");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+// 合并文件夹内所有 PDF
+ipcMain.handle("merge-pdf-buffer", async (event: any, files: any[], outputFolder: any) => {
+  const filesToMerge = files.map((file, index) => {
+    return {
+      name: file.name,
+      buffer: Buffer.from(file.buffer),
+    }
+  });
+  
+  try {
+    const outputPath = path.join(outputFolder, `合并文件-${Date.now()}.pdf`)
+    await mergePDF(filesToMerge, outputPath);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 });

@@ -2,7 +2,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  selectInputFile: () => ipcRenderer.invoke('select-input-file'),
+  selectInputFiles: () => ipcRenderer.invoke('select-input-files'),
   selectOutputFolder: () => ipcRenderer.invoke('select-output-folder'),
   compressPDFBuffer: (inputFile, outputFolder) => ipcRenderer.invoke('compress-pdf-buffer', inputFile, outputFolder),
+  mergePDFBuffer: (inputFiles, outputFolder) => ipcRenderer.invoke('merge-pdf-buffer', inputFiles, outputFolder),
 });

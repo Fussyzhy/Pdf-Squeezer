@@ -12,7 +12,10 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     App: typeof import('./App.vue')['default']
+    CompressView: typeof import('./views/components/CompressView.vue')['default']
     Home: typeof import('./views/Home.vue')['default']
+    MergeView: typeof import('./views/components/MergeView.vue')['default']
+    PdfFileList: typeof import('./views/components/PdfFileList.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SystemSettingDialog: typeof import('./views/components/dialog/SystemSettingDialog.vue')['default']
