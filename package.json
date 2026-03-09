@@ -6,10 +6,10 @@
   "type": "module",
   "main": "electron/main.ts",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && electron-builder"
+    "dev": "cross-env NODE_ENV=development concurrently \"npm run vue:dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "npm run vue:build && electron-builder",
+    "vue:dev": "vite",
+    "vue:build": "vite build"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
