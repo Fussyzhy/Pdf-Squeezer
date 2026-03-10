@@ -4,7 +4,11 @@
 
     <el-tabs v-model="activeTab" class="tool-tabs">
       <el-tab-pane label="PDF 压缩" name="compress">
-        <compress-view @update:fileList="updateFileList" @handle-compress="handleCompress" />
+        <compress-view
+          v-model:compression-level="compressionLevel"
+          @update:fileList="updateFileList"
+          @handle-compress="handleCompress"
+        />
       </el-tab-pane>
 
       <el-tab-pane label="PDF 合并" name="merge">
@@ -43,18 +47,33 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
 
 const DEFAULT_COMPRESSION_LEVEL: CompressionLevel = 'ebook'
 const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default']
 
+const getSavedCompressionLevel = (): CompressionLevel => {
+  const savedLevel = localStorage.getItem('compressionLevel')
+
+  if (compressionLevels.includes(savedLevel as CompressionLevel)) {
+    return savedLevel as CompressionLevel
+  }
+
+  return DEFAULT_COMPRESSION_LEVEL
+}
+
 const activeTab = ref('compress')
 const isLoading = ref(false)
 const settingsVisible = ref(false)
 const fileListVisible = ref(false)
+const compressionLevel = ref<CompressionLevel>(getSavedCompressionLevel())
 const fileList = ref<{ name: string; buffer: ArrayBuffer }[]>([])
+
+watch(compressionLevel, (level) => {
+  localStorage.setItem('compressionLevel', level)
+})
 
 const handleOpenSettings = () => {
   settingsVisible.value = true
@@ -67,16 +86,6 @@ const updateFileList = (val: { name: string; buffer: ArrayBuffer }[]) => {
   ElMessage.success('文件已添加到列表')
 }
 
-const getCompressionLevel = (): CompressionLevel => {
-  const savedLevel = localStorage.getItem('compressionLevel')
-
-  if (compressionLevels.includes(savedLevel as CompressionLevel)) {
-    return savedLevel as CompressionLevel
-  }
-
-  return DEFAULT_COMPRESSION_LEVEL
-}
-
 const handleCompress = async () => {
   if (!fileList.value.length) {
     ElMessage.error('请先上传 PDF 文件')
@@ -84,7 +93,6 @@ const handleCompress = async () => {
   }
 
   const outputFolder = localStorage.getItem('outputFolder')
-  const compressionLevel = getCompressionLevel()
 
   if (!outputFolder) {
     ElMessage.error('请先设置输出文件夹')
@@ -97,7 +105,7 @@ const handleCompress = async () => {
       buffer: new Uint8Array(item.buffer),
     }))
 
-    const result = await window.electronAPI.compressPDFBuffer(files, outputFolder, compressionLevel)
+    const result = await window.electronAPI.compressPDFBuffer(files, outputFolder, compressionLevel.value)
 
     if (result.success) {
       ElMessage.success('压缩完成')
@@ -157,7 +165,7 @@ const handleMerge = async () => {
   text-align: center;
   width: 450px;
   position: relative;
-  height: 400px;
+  height: 420px;
   overflow: hidden;
 
   .setting-btn {

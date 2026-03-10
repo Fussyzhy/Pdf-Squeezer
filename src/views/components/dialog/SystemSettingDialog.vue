@@ -17,18 +17,6 @@
           <el-button type="primary" @click="handleSelectOutput">选择输出文件夹</el-button>
         </div>
       </div>
-
-      <div class="setting-group">
-        <div class="setting-label">压缩等级</div>
-        <el-select v-model="form.compressionLevel" placeholder="请选择压缩等级">
-          <el-option
-            v-for="option in compressionLevelOptions"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          />
-        </el-select>
-      </div>
     </div>
 
     <template #footer>
@@ -42,17 +30,6 @@
 import { reactive, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 
-type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default';
-
-const DEFAULT_COMPRESSION_LEVEL: CompressionLevel = 'ebook';
-const compressionLevelOptions: { label: string; value: CompressionLevel }[] = [
-  { label: '屏幕：最小体积', value: 'screen' },
-  { label: '电子书：推荐', value: 'ebook' },
-  { label: '打印：较高质量', value: 'printer' },
-  { label: '印前：更高质量', value: 'prepress' },
-  { label: '默认：尽量保留细节', value: 'default' },
-];
-
 const props = defineProps<{
   modelValue: boolean;
 }>()
@@ -61,23 +38,9 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
 }>()
 
-const form = reactive<{
-  outputFolder: string;
-  compressionLevel: CompressionLevel;
-}>({
+const form = reactive({
   outputFolder: '',
-  compressionLevel: DEFAULT_COMPRESSION_LEVEL,
 });
-
-const getSavedCompressionLevel = (): CompressionLevel => {
-  const savedLevel = localStorage.getItem('compressionLevel');
-
-  if (compressionLevelOptions.some((option) => option.value === savedLevel)) {
-    return savedLevel as CompressionLevel;
-  }
-
-  return DEFAULT_COMPRESSION_LEVEL;
-};
 
 const handleClose = () => {
   emit('update:modelValue', false);
@@ -85,7 +48,6 @@ const handleClose = () => {
 
 const handleSave = () => {
   localStorage.setItem('outputFolder', form.outputFolder);
-  localStorage.setItem('compressionLevel', form.compressionLevel);
   ElMessage.success('设置已保存');
   handleClose();
 };
@@ -94,7 +56,6 @@ watch(() => props.modelValue, (newVal) => {
   if (!newVal) return;
 
   form.outputFolder = localStorage.getItem('outputFolder') || '';
-  form.compressionLevel = getSavedCompressionLevel();
 })
 
 const handleSelectOutput = async () => {
@@ -105,7 +66,7 @@ const handleSelectOutput = async () => {
 
 <style scoped lang="scss">
 .system-setting-dialog :deep(.el-dialog__body) {
-  min-height: 240px;
+  min-height: 140px;
 }
 
 .setting-form {
@@ -142,9 +103,5 @@ const handleSelectOutput = async () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-}
-
-:deep(.el-select) {
-  width: 100%;
 }
 </style>
