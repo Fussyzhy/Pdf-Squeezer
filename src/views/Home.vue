@@ -3,48 +3,37 @@
     <h2>PDF 工具箱</h2>
 
     <el-tabs v-model="activeTab" class="tool-tabs">
-
-      <!-- PDF 压缩 -->
       <el-tab-pane label="PDF 压缩" name="compress">
-
-        <compress-view @update:fileList="updateFileList" @handle-compress="handleCompress"/>
-
+        <compress-view @update:fileList="updateFileList" @handle-compress="handleCompress" />
       </el-tab-pane>
 
-
-      <!-- PDF 合并 -->
       <el-tab-pane label="PDF 合并" name="merge">
-        <merge-view @update:fileList="updateFileList" @handle-merge="handleMerge"/>
+        <merge-view @update:fileList="updateFileList" @handle-merge="handleMerge" />
       </el-tab-pane>
 
-
-      <!-- PDF 拆分 -->
       <el-tab-pane label="PDF 拆分" name="split">
-
         <div class="placeholder">
           PDF 拆分功能开发中
         </div>
-
       </el-tab-pane>
 
-
-      <!-- 格式转换 -->
       <el-tab-pane label="格式转换" name="convert">
-
         <div class="placeholder">
           PDF 转换功能开发中
         </div>
-
       </el-tab-pane>
-
     </el-tabs>
 
     <div class="setting-btn">
       <el-icon @click="handleOpenSettings"><Setting /></el-icon>
     </div>
 
-    <div class="file-list-container" :class="{hide: !fileListVisible}">
-      <pdf-file-list v-model="fileList" @update:visible="(visible) => fileListVisible = visible" :visible="fileListVisible"/>
+    <div class="file-list-container" :class="{ hide: !fileListVisible }">
+      <pdf-file-list
+        v-model="fileList"
+        :visible="fileListVisible"
+        @update:visible="(visible) => fileListVisible = visible"
+      />
     </div>
   </div>
 
@@ -55,80 +44,98 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
+
+type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
+
+const DEFAULT_COMPRESSION_LEVEL: CompressionLevel = 'ebook'
+const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default']
+
 const activeTab = ref('compress')
-// loading
 const isLoading = ref(false)
-// 设置窗口
 const settingsVisible = ref(false)
+const fileListVisible = ref(false)
+const fileList = ref<{ name: string; buffer: ArrayBuffer }[]>([])
+
 const handleOpenSettings = () => {
   settingsVisible.value = true
 }
 
-const fileListVisible = ref(false)
-// 文件列表
-const fileList = ref<{ name: string; buffer: ArrayBuffer }[]>([])
-
-// 更新文件列表
 const updateFileList = (val: { name: string; buffer: ArrayBuffer }[]) => {
-  if(!val.length) return
+  if (!val.length) return
+
   fileList.value.push(...val)
-  ElMessage.success('文件已添加到列表！')
+  ElMessage.success('文件已添加到列表')
+}
+
+const getCompressionLevel = (): CompressionLevel => {
+  const savedLevel = localStorage.getItem('compressionLevel')
+
+  if (compressionLevels.includes(savedLevel as CompressionLevel)) {
+    return savedLevel as CompressionLevel
+  }
+
+  return DEFAULT_COMPRESSION_LEVEL
 }
 
 const handleCompress = async () => {
   if (!fileList.value.length) {
-    ElMessage.error('请上传 PDF 文件！')
+    ElMessage.error('请先上传 PDF 文件')
     return
   }
+
   const outputFolder = localStorage.getItem('outputFolder')
+  const compressionLevel = getCompressionLevel()
+
   if (!outputFolder) {
-    ElMessage.error('请设置输出文件夹！')
+    ElMessage.error('请先设置输出文件夹')
     return
   }
+
   try {
-    const _files = fileList.value.map((item) => ({
+    const files = fileList.value.map((item) => ({
       name: item.name,
-      buffer: new Uint8Array(item.buffer)
+      buffer: new Uint8Array(item.buffer),
     }))
-    const result = await window.electronAPI.compressPDFBuffer(
-      _files,
-      outputFolder
-    )
+
+    const result = await window.electronAPI.compressPDFBuffer(files, outputFolder, compressionLevel)
+
     if (result.success) {
-      ElMessage.success('压缩完成！')
+      ElMessage.success('压缩完成')
     } else {
       ElMessage.error('压缩失败')
       console.log(result.error)
     }
   } catch (err) {
     ElMessage.error('压缩失败')
+    console.log(err)
   } finally {
     isLoading.value = false
   }
 }
 
-// 合并 PDF
 const handleMerge = async () => {
   if (!fileList.value.length) {
-    ElMessage.error('请上传 PDF 文件！')
+    ElMessage.error('请先上传 PDF 文件')
     return
   }
+
   const outputFolder = localStorage.getItem('outputFolder')
+
   if (!outputFolder) {
-    ElMessage.error('请设置输出文件夹！')
+    ElMessage.error('请先设置输出文件夹')
     return
   }
+
   try {
-    const _files = fileList.value.map((item) => ({
+    const files = fileList.value.map((item) => ({
       name: item.name,
-      buffer: new Uint8Array(item.buffer)
+      buffer: new Uint8Array(item.buffer),
     }))
-    const result = await window.electronAPI.mergePDFBuffer(
-      _files,
-      outputFolder
-    )
+
+    const result = await window.electronAPI.mergePDFBuffer(files, outputFolder)
+
     if (result.success) {
-      ElMessage.success('合并完成！')
+      ElMessage.success('合并完成')
     } else {
       ElMessage.error('合并失败')
       console.log(result.error)
@@ -146,7 +153,7 @@ const handleMerge = async () => {
   background: #fff;
   padding: 40px 50px;
   border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 450px;
   position: relative;
@@ -176,7 +183,7 @@ const handleMerge = async () => {
     background: #fff;
     border: 1px solid #eee;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 10px;
     z-index: 10;
     transition: all 0.3s ease;
@@ -224,5 +231,4 @@ span {
   display: flex;
   justify-content: center;
 }
-
 </style>
