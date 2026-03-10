@@ -1,102 +1,134 @@
-import { createRequire } from 'module';
-import fs from 'fs';
-import { compressPDF, mergePDF } from './util/pdf-editor.ts';
+﻿import { createRequire } from 'module'
+import fs from 'fs'
+import { compressPDF, mergePDF } from './util/pdf-editor.ts'
+import { getPDFPageCount, splitPDF, type PdfFile, type SplitOptions } from './util/pdf-split.ts'
 
-const require = createRequire(import.meta.url);
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const path = require('path');
+const require = createRequire(import.meta.url)
+const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const path = require('path')
 
-type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default';
+type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
+type RendererPdfBuffer = Uint8Array | ArrayBuffer
+type RendererPdfFile = { name: string; buffer: RendererPdfBuffer }
 
-const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default'];
+const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default']
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 800,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(import.meta.dirname, 'preload.ts'),
     },
-    icon: path.join(import.meta.dirname, 'icon.ico')
-  });
+    icon: path.join(import.meta.dirname, 'icon.ico'),
+    resizable: false,
+  })
 
-  win.setMenu(null);
+  win.setMenu(null)
 
   if (process.env.NODE_ENV === 'development') {
-    win.loadURL('http://localhost:5173');
-    win.webContents.openDevTools();
+    win.loadURL('http://localhost:5173')
+    win.webContents.openDevTools()
   } else {
-    win.loadFile(path.join(process.cwd() + '/resources/vue/index.html'));
+    win.loadFile(path.join(process.cwd(), 'resources/vue/index.html'))
   }
 }
 
-app.whenReady().then(createWindow);
+function toNodeBuffer(buffer: RendererPdfBuffer) {
+  return buffer instanceof Uint8Array ? Buffer.from(buffer) : Buffer.from(new Uint8Array(buffer))
+}
+
+function toBufferFile(file: RendererPdfFile): PdfFile {
+  return {
+    name: file.name,
+    buffer: toNodeBuffer(file.buffer),
+  }
+}
+
+function getFileNameParts(fileName: string) {
+  const parsed = path.parse(fileName)
+  return {
+    baseName: parsed.name || 'file',
+    extension: parsed.ext ? parsed.ext.slice(1) : 'pdf',
+  }
+}
+
+app.whenReady().then(createWindow)
 
 ipcMain.handle('select-output-folder', async () => {
-  const result = await dialog.showOpenDialog({ properties: ['openDirectory'] });
-  const outputFolder = result.canceled ? null : result.filePaths[0];
-  return outputFolder;
-});
+  const result = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  return result.canceled ? null : result.filePaths[0]
+})
 
-ipcMain.handle('select-input-files', async () => {
+ipcMain.handle('select-input-files', async (_event: unknown, multiple = true) => {
   const result = await dialog.showOpenDialog({
     title: '选择 PDF 文件',
-    properties: ['openFile', 'multiSelections'],
+    properties: multiple ? ['openFile', 'multiSelections'] : ['openFile'],
     filters: [
       { name: 'PDF 文件', extensions: ['pdf'] },
-      { name: '所有文件', extensions: ['*'] }
-    ]
-  });
+      { name: '所有文件', extensions: ['*'] },
+    ],
+  })
 
-  if (result.canceled || result.filePaths.length === 0) return [];
+  if (result.canceled || result.filePaths.length === 0) return []
 
-  const files = result.filePaths.map((filePath: string) => {
-    const buffer = fs.readFileSync(filePath);
-    const fileName = path.basename(filePath);
-    return { name: fileName, buffer };
-  });
+  return result.filePaths.map((filePath: string) => ({
+    name: path.basename(filePath),
+    buffer: fs.readFileSync(filePath),
+  }))
+})
 
-  return files;
-});
+ipcMain.handle('get-pdf-page-count', async (_event: unknown, file: RendererPdfFile) => {
+  try {
+    const pageCount = await getPDFPageCount(toBufferFile(file))
+    return { success: true, pageCount }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
 
-ipcMain.handle('compress-pdf-buffer', async (event: any, files: any[], outputFolder: any, level?: CompressionLevel) => {
+ipcMain.handle('compress-pdf-buffer', async (_event: unknown, files: RendererPdfFile[], outputFolder: string, level?: CompressionLevel) => {
   const compressionLevel = compressionLevels.includes(level as CompressionLevel)
     ? (level as CompressionLevel)
-    : 'ebook';
+    : 'ebook'
 
   const filesToCompress = files.map((file, index) => {
-    const [name, ext] = file.name.split('.');
+    const { baseName, extension } = getFileNameParts(file.name)
 
     return {
       name: file.name,
-      buffer: Buffer.from(file.buffer),
-      outputFile: path.join(outputFolder, name + '-' + Date.now() + index + '.' + ext),
-    };
-  });
+      buffer: toNodeBuffer(file.buffer),
+      outputFile: path.join(outputFolder, `${baseName}-${Date.now()}-${index}.${extension}`),
+    }
+  })
 
   try {
-    await compressPDF(filesToCompress, compressionLevel);
-    return { success: true };
+    await compressPDF(filesToCompress, compressionLevel)
+    return { success: true }
   } catch (err: any) {
-    return { success: false, error: err.message };
+    return { success: false, error: err.message }
   }
-});
+})
 
-ipcMain.handle('merge-pdf-buffer', async (event: any, files: any[], outputFolder: any) => {
-  const filesToMerge = files.map((file) => {
-    return {
-      name: file.name,
-      buffer: Buffer.from(file.buffer),
-    };
-  });
+ipcMain.handle('merge-pdf-buffer', async (_event: unknown, files: RendererPdfFile[], outputFolder: string) => {
+  const filesToMerge = files.map(toBufferFile)
 
   try {
-    const outputPath = path.join(outputFolder, `合并文件-${Date.now()}.pdf`);
-    await mergePDF(filesToMerge, outputPath);
-    return { success: true };
+    const outputPath = path.join(outputFolder, `merged-${Date.now()}.pdf`)
+    await mergePDF(filesToMerge, outputPath)
+    return { success: true, outputPath }
   } catch (err: any) {
-    return { success: false, error: err.message };
+    return { success: false, error: err.message }
   }
-});
+})
+
+ipcMain.handle('split-pdf-buffer', async (_event: unknown, file: RendererPdfFile, outputFolder: string, options: SplitOptions) => {
+  try {
+    const result = await splitPDF(toBufferFile(file), outputFolder, options)
+    return { success: true, outputFiles: result.outputFiles, pageCount: result.pageCount }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
