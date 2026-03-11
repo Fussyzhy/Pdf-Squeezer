@@ -14,7 +14,6 @@ declare module 'vue' {
     App: typeof import('./App.vue')['default']
     CompressView: typeof import('./views/components/CompressView.vue')['default']
     ConvertView: typeof import('./views/components/ConvertView.vue')['default']
-    Home: typeof import('./views/Home.vue')['default']
     MergeView: typeof import('./views/components/MergeView.vue')['default']
     PdfFileList: typeof import('./views/components/PdfFileList.vue')['default']
     PdfWorkspace: typeof import('./views/PdfWorkspace.vue')['default']
