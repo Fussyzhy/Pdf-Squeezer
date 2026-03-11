@@ -1,0 +1,82 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="98" y1="40" x2="1180" y2="612" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E8F3FF"/>
+      <stop offset="0.5" stop-color="#F7FBFF"/>
+      <stop offset="1" stop-color="#EFF9F0"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="210" y1="128" x2="520" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F8CFF"/>
+      <stop offset="1" stop-color="#62C555"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="730" y1="130" x2="1080" y2="490" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#F9FCFF" stop-opacity="0.92"/>
+    </linearGradient>
+    <filter id="shadow" x="134" y="87" width="1032" height="456" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="24"/>
+      <feGaussianBlur stdDeviation="28"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.176471 0 0 0 0 0.286275 0 0 0 0 0.482353 0 0 0 0.14 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="640" rx="36" fill="url(#bg)"/>
+  <circle cx="154" cy="118" r="118" fill="#DCEEFF" fill-opacity="0.72"/>
+  <circle cx="1164" cy="540" r="146" fill="#DDF7E1" fill-opacity="0.86"/>
+  <circle cx="1102" cy="126" r="72" fill="#EEF5FF"/>
+
+  <g filter="url(#shadow)">
+    <rect x="190" y="119" width="900" height="344" rx="28" fill="white" fill-opacity="0.76"/>
+    <rect x="190.75" y="119.75" width="898.5" height="342.5" rx="27.25" stroke="white" stroke-opacity="0.8" stroke-width="1.5"/>
+  </g>
+
+  <rect x="238" y="166" width="110" height="110" rx="30" fill="url(#accent)"/>
+  <rect x="262" y="190" width="62" height="62" rx="19" fill="white" fill-opacity="0.92"/>
+  <rect x="278" y="206" width="30" height="4" rx="2" fill="#4F8CFF"/>
+  <rect x="278" y="218" width="30" height="4" rx="2" fill="#4F8CFF" fill-opacity="0.84"/>
+  <rect x="278" y="230" width="22" height="4" rx="2" fill="#62C555"/>
+
+  <text x="384" y="216" fill="#0F172A" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="56" font-weight="700">PDF Squeezer</text>
+  <text x="384" y="266" fill="#526071" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="24" font-weight="500">Desktop PDF workspace for compressing, merging, splitting and converting files.</text>
+
+  <g>
+    <rect x="384" y="308" width="122" height="38" rx="19" fill="#EEF5FF"/>
+    <text x="413" y="333" fill="#2E66D1" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Compress</text>
+    <rect x="520" y="308" width="104" height="38" rx="19" fill="#FFF5E8"/>
+    <text x="552" y="333" fill="#C47A16" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Merge</text>
+    <rect x="638" y="308" width="88" height="38" rx="19" fill="#ECFBF8"/>
+    <text x="667" y="333" fill="#0E8C7E" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Split</text>
+    <rect x="740" y="308" width="116" height="38" rx="19" fill="#EEF8EE"/>
+    <text x="768" y="333" fill="#3C9637" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Convert</text>
+  </g>
+
+  <text x="384" y="390" fill="#607084" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="500">Built with Electron, Vue 3, TypeScript and Ghostscript.</text>
+
+  <rect x="780" y="158" width="252" height="92" rx="22" fill="url(#panel)"/>
+  <rect x="780.75" y="158.75" width="250.5" height="90.5" rx="21.25" stroke="#E5EDF8" stroke-width="1.5"/>
+  <rect x="808" y="188" width="58" height="40" rx="14" fill="#EFF5FF"/>
+  <text x="825" y="213" fill="#2E66D1" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="700">5</text>
+  <text x="882" y="196" fill="#152235" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="700">Compression presets</text>
+  <text x="882" y="223" fill="#627186" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="15" font-weight="500">screen / ebook / printer / prepress / default</text>
+
+  <rect x="748" y="270" width="284" height="92" rx="22" fill="url(#panel)"/>
+  <rect x="748.75" y="270.75" width="282.5" height="90.5" rx="21.25" stroke="#E5EDF8" stroke-width="1.5"/>
+  <rect x="776" y="300" width="70" height="40" rx="14" fill="#ECFBF8"/>
+  <text x="789" y="324" fill="#0E8C7E" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="700">1-3,5-6</text>
+  <text x="862" y="308" fill="#152235" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="700">Flexible split modes</text>
+  <text x="862" y="335" fill="#627186" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="15" font-weight="500">Every N pages or extract exact page ranges</text>
+
+  <rect x="812" y="382" width="220" height="92" rx="22" fill="url(#panel)"/>
+  <rect x="812.75" y="382.75" width="218.5" height="90.5" rx="21.25" stroke="#E5EDF8" stroke-width="1.5"/>
+  <rect x="840" y="412" width="62" height="40" rx="14" fill="#EEF8EE"/>
+  <text x="855" y="437" fill="#3C9637" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="700">PNG</text>
+  <text x="918" y="420" fill="#152235" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="700">PDF to image</text>
+  <text x="918" y="447" fill="#627186" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="15" font-weight="500">PNG / JPEG at 150, 200 or 300 DPI</text>
+
+  <rect x="226" y="510" width="828" height="52" rx="18" fill="white" fill-opacity="0.78"/>
+  <text x="254" y="543" fill="#4D5E73" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="500">Bundled Ghostscript runtime · Drag-and-drop upload · Draggable file drawer · Safe output naming</text>
+</svg>
