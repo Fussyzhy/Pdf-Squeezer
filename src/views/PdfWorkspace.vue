@@ -628,6 +628,7 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
   top: 18px;
   right: 18px;
   bottom: 18px;
+  z-index: 1000;
 }
 
 :deep(.el-tabs__header) {
