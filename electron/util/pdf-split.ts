@@ -2,8 +2,8 @@
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { promisify } from 'util'
+import { getGhostscriptCommand, getGhostscriptEnv } from './ghostscript-runtime.ts'
 
 const execFileAsync = promisify(execFile)
 
@@ -19,13 +19,6 @@ export type SplitOptions =
 export interface SplitResult {
   outputFiles: string[]
   pageCount: number
-}
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-function getGSCommand() {
-  return path.resolve(__dirname, '../../core/bin/gswin64c.exe')
 }
 
 function createTempPdfPath(prefix: string) {
@@ -52,7 +45,9 @@ function escapePostScriptPath(filePath: string) {
 
 async function getPDFPageCountFromPath(filePath: string) {
   const command = `(${escapePostScriptPath(filePath)}) (r) file runpdfbegin pdfpagecount = quit`
-  const { stdout } = await execFileAsync(getGSCommand(), ['-q', '-dNOSAFER', '-dNODISPLAY', '-c', command])
+  const { stdout } = await execFileAsync(getGhostscriptCommand(), ['-q', '-dNOSAFER', '-dNODISPLAY', '-c', command], {
+    env: getGhostscriptEnv(),
+  })
   const pageCountText = `${stdout}`.trim().split(/\s+/).pop() ?? ''
   const pageCount = Number.parseInt(pageCountText, 10)
 
@@ -132,6 +127,7 @@ export async function getPDFPageCount(file: PdfFile) {
 
 export async function splitPDF(file: PdfFile, outputFolder: string, options: SplitOptions): Promise<SplitResult> {
   const tempFile = createTempPdfPath('pdf_split')
+  const gsEnv = getGhostscriptEnv()
   fs.writeFileSync(tempFile, file.buffer)
 
   try {
@@ -153,14 +149,16 @@ export async function splitPDF(file: PdfFile, outputFolder: string, options: Spl
         const endPage = Math.min(pageCount, startPage + pagesPerFile - 1)
         const outputFile = path.join(outputFolder, `${baseName}-part-${String(part).padStart(2, '0')}-${timestamp}.pdf`)
 
-        await execFileAsync(getGSCommand(), [
+        await execFileAsync(getGhostscriptCommand(), [
           '-sDEVICE=pdfwrite',
           `-dFirstPage=${startPage}`,
           `-dLastPage=${endPage}`,
           '-o',
           outputFile,
           tempFile,
-        ])
+        ], {
+          env: gsEnv,
+        })
 
         outputFiles.push(outputFile)
         part += 1
@@ -175,13 +173,15 @@ export async function splitPDF(file: PdfFile, outputFolder: string, options: Spl
       `${baseName}-pages-${sanitizeFileNamePart(normalizedPageRanges)}-${timestamp}.pdf`,
     )
 
-    await execFileAsync(getGSCommand(), [
+    await execFileAsync(getGhostscriptCommand(), [
       '-sDEVICE=pdfwrite',
       `-sPageList=${normalizedPageRanges}`,
       '-o',
       outputFile,
       tempFile,
-    ])
+    ], {
+      env: gsEnv,
+    })
 
     return { outputFiles: [outputFile], pageCount }
   } finally {

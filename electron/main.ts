@@ -1,6 +1,7 @@
 ﻿import { createRequire } from 'module'
 import fs from 'fs'
 import { compressPDF, mergePDF } from './util/pdf-editor.ts'
+import { convertPDF, type PdfConvertOptions } from './util/pdf-convert.ts'
 import { getPDFPageCount, splitPDF, type PdfFile, type SplitOptions } from './util/pdf-split.ts'
 
 const require = createRequire(import.meta.url)
@@ -23,7 +24,7 @@ function createWindow() {
       preload: path.join(import.meta.dirname, 'preload.ts'),
     },
     icon: path.join(import.meta.dirname, 'icon.ico'),
-    resizable: false,
+    // resizable: false,
   })
 
   win.setMenu(null)
@@ -119,6 +120,15 @@ ipcMain.handle('merge-pdf-buffer', async (_event: unknown, files: RendererPdfFil
     const outputPath = path.join(outputFolder, `merged-${Date.now()}.pdf`)
     await mergePDF(filesToMerge, outputPath)
     return { success: true, outputPath }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('convert-pdf-buffer', async (_event: unknown, files: RendererPdfFile[], outputFolder: string, options: PdfConvertOptions) => {
+  try {
+    const results = await convertPDF(files.map(toBufferFile), outputFolder, options)
+    return { success: true, results }
   } catch (err: any) {
     return { success: false, error: err.message }
   }
