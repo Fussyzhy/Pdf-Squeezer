@@ -131,8 +131,8 @@ const convertMode = ref<ConvertMode>('pdf-to-image')
 const imageFormat = ref<'png' | 'jpeg'>('png')
 const dpi = ref(150)
 
-const currentModeMeta = computed(() => {
-  return convertModeOptions.find((option) => option.value === convertMode.value) ?? convertModeOptions[0]
+const currentModeMeta = computed<ConvertModeMeta>(() => {
+  return convertModeOptions.find((option) => option.value === convertMode.value) ?? convertModeOptions[0]!
 })
 
 const uploadPrompt = computed(() => {

@@ -2,8 +2,8 @@ import { execFile } from 'child_process'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { promisify } from 'util'
+import { getGhostscriptCommand, getGhostscriptEnv } from './ghostscript-runtime.ts'
 
 const execFileAsync = promisify(execFile)
 
@@ -28,9 +28,6 @@ export interface PdfConvertResult {
   outputFiles: string[]
 }
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
 const imageRendererMap: Record<PdfImageFormat, { device: string; extension: string; extraArgs: string[] }> = {
   png: {
     device: 'png16m',
@@ -42,10 +39,6 @@ const imageRendererMap: Record<PdfImageFormat, { device: string; extension: stri
     extension: 'jpg',
     extraArgs: ['-dJPEGQ=90'],
   },
-}
-
-function getGSCommand() {
-  return path.resolve(__dirname, '../../core/bin/gswin64c.exe')
 }
 
 function createTempPdfPath(prefix: string) {
@@ -102,13 +95,13 @@ async function convertPdfToImages(
   const dpi = Math.trunc(options.dpi)
 
   if (!Number.isInteger(dpi) || dpi < 72) {
-    throw new Error('DPI 必须是不小于 72 的整数')
+    throw new Error('DPI must be an integer greater than or equal to 72')
   }
 
   const renderer = imageRendererMap[options.imageFormat]
 
   if (!renderer) {
-    throw new Error(`不支持的图片格式：${options.imageFormat}`)
+    throw new Error(`Unsupported image format: ${options.imageFormat}`)
   }
 
   const tempFile = createTempPdfPath('pdf_convert')
@@ -120,7 +113,7 @@ async function convertPdfToImages(
     outputDirectory = createOutputDirectory(outputFolder, file.name, 'images')
     const outputPattern = path.join(outputDirectory, `page-%03d.${renderer.extension}`)
 
-    await execFileAsync(getGSCommand(), [
+    await execFileAsync(getGhostscriptCommand(), [
       '-dSAFER',
       '-dBATCH',
       '-dNOPAUSE',
@@ -130,12 +123,14 @@ async function convertPdfToImages(
       ...renderer.extraArgs,
       `-sOutputFile=${outputPattern}`,
       tempFile,
-    ])
+    ], {
+      env: getGhostscriptEnv(),
+    })
 
     const outputFiles = getSortedOutputFiles(outputDirectory, renderer.extension)
 
     if (!outputFiles.length) {
-      throw new Error(`未能为 ${file.name} 生成图片文件`)
+      throw new Error(`No output images were generated for ${file.name}`)
     }
 
     return {
@@ -171,7 +166,7 @@ export async function convertPDF(
   options: PdfConvertOptions,
 ): Promise<PdfConvertResult[]> {
   if (!files.length) {
-    throw new Error('没有可转换的 PDF 文件')
+    throw new Error('No PDF files to convert')
   }
 
   const results: PdfConvertResult[] = []
@@ -181,11 +176,8 @@ export async function convertPDF(
       case 'pdf-to-image':
         results.push(await pdfConverters['pdf-to-image'](file, outputFolder, options))
         break
-      default: {
-        const unsupportedMode: never = options
-        void unsupportedMode
-        throw new Error('不支持的转换方式')
-      }
+      default:
+        throw new Error('Unsupported conversion mode')
     }
   }
 
