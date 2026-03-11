@@ -1,64 +1,84 @@
-﻿<template>
-  <div class="container" v-loading="isLoading">
-    <h2>PDF 工具箱</h2>
-
-    <el-tabs v-model="activeTab" class="tool-tabs">
-      <el-tab-pane label="PDF 压缩" name="compress">
-        <compress-view
-          v-model:compression-level="compressionLevel"
-          @update:fileList="handleCompressFileListUpdate"
-          @handle-compress="handleCompress"
-        />
-      </el-tab-pane>
-
-      <el-tab-pane label="PDF 合并" name="merge">
-        <merge-view
-          @update:fileList="handleMergeFileListUpdate"
-          @handle-merge="handleMerge"
-        />
-      </el-tab-pane>
-
-      <el-tab-pane label="PDF 拆分" name="split">
-        <split-view
-          :page-count="splitPageCount"
-          :page-count-loading="splitPageCountLoading"
-          @update:fileList="handleSplitFileListUpdate"
-          @handle-split="handleSplit"
-        />
-      </el-tab-pane>
-
-      <el-tab-pane label="格式转换" name="convert">
-        <div class="placeholder">
-          PDF 转换功能开发中
+<template>
+  <div
+    class="workspace-shell"
+    :class="{ 'workspace-shell--collapsed': !fileListVisible }"
+    v-loading="isLoading"
+  >
+    <section class="workspace-main">
+      <header class="workspace-header">
+        <div class="header-copy">
+          <span class="header-kicker">PDF 效率工具</span>
+          <h1>压缩、合并、拆分与格式转换</h1>
+          <p>上传文件后即可在当前页完成处理，右侧文件区支持查看、删除和拖拽排序。</p>
         </div>
-      </el-tab-pane>
-    </el-tabs>
 
-    <div class="setting-btn">
-      <el-icon @click="handleOpenSettings"><Setting /></el-icon>
-    </div>
+        <div class="header-side">
+          <div class="output-card">
+            <span class="output-card__label">输出目录</span>
+            <strong>{{ outputFolderName }}</strong>
+            <p>{{ outputFolderPath || '尚未设置，处理前请先选择保存目录。' }}</p>
+          </div>
 
-    <div
-      v-if="activeTab !== 'convert'"
-      class="file-list-container"
-      :class="{ hide: !fileListVisible }"
-    >
+          <button class="settings-button" type="button" @click="handleOpenSettings">
+            输出设置
+          </button>
+        </div>
+      </header>
+
+      <el-tabs v-model="activeTab" class="tool-tabs">
+        <el-tab-pane label="压缩" name="compress">
+          <compress-view
+            v-model:compression-level="compressionLevel"
+            @update:fileList="handleCompressFileListUpdate"
+            @handle-compress="handleCompress"
+          />
+        </el-tab-pane>
+
+        <el-tab-pane label="合并" name="merge">
+          <merge-view
+            @update:fileList="handleMergeFileListUpdate"
+            @handle-merge="handleMerge"
+          />
+        </el-tab-pane>
+
+        <el-tab-pane label="拆分" name="split">
+          <split-view
+            :page-count="splitPageCount"
+            :page-count-loading="splitPageCountLoading"
+            @update:fileList="handleSplitFileListUpdate"
+            @handle-split="handleSplit"
+          />
+        </el-tab-pane>
+
+        <el-tab-pane label="格式转换" name="convert">
+          <convert-view
+            @update:fileList="handleConvertFileListUpdate"
+            @handle-convert="handleConvert"
+          />
+        </el-tab-pane>
+      </el-tabs>
+
+      <div class="workspace-footer">Haoyang 设计</div>
+    </section>
+
+    <aside class="workspace-aside">
       <pdf-file-list
         v-model="currentFileList"
+        :title="currentFileListTitle"
         :visible="fileListVisible"
         @update:visible="handleFileListVisibleChange"
       />
-    </div>
+    </aside>
   </div>
 
-  <div class="tag">@Design by Haoyang</div>
   <system-setting-dialog v-model="settingsVisible" />
 </template>
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import CompressView from '@/views/components/CompressView.vue'
+import ConvertView from '@/views/components/ConvertView.vue'
 import MergeView from '@/views/components/MergeView.vue'
 import PdfFileList from '@/views/components/PdfFileList.vue'
 import SplitView from '@/views/components/SplitView.vue'
@@ -66,14 +86,31 @@ import SystemSettingDialog from '@/views/components/dialog/SystemSettingDialog.v
 
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
 type ToolTab = 'compress' | 'merge' | 'split' | 'convert'
-type FileTab = Exclude<ToolTab, 'convert'>
 type PdfFile = { name: string; buffer: ArrayBuffer }
+type PdfBinaryPayload = { name: string; buffer: Uint8Array }
 type SplitSubmitOptions =
   | { mode: 'interval'; pagesPerFile: number }
   | { mode: 'custom'; pageRanges: string }
+type ConvertSubmitOptions = {
+  mode: 'pdf-to-image'
+  imageFormat: 'png' | 'jpeg'
+  dpi: number
+}
 
 const DEFAULT_COMPRESSION_LEVEL: CompressionLevel = 'ebook'
 const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default']
+const toolLabels: Record<ToolTab, string> = {
+  compress: '压缩',
+  merge: '合并',
+  split: '拆分',
+  convert: '格式转换',
+}
+const fileListTitles: Record<ToolTab, string> = {
+  compress: '压缩文件',
+  merge: '合并队列',
+  split: '拆分文件',
+  convert: '转换文件',
+}
 
 const getSavedCompressionLevel = (): CompressionLevel => {
   const savedLevel = localStorage.getItem('compressionLevel')
@@ -89,10 +126,12 @@ const activeTab = ref<ToolTab>('compress')
 const isLoading = ref(false)
 const settingsVisible = ref(false)
 const fileListVisible = ref(false)
+const outputFolderPath = ref('')
 const compressionLevel = ref<CompressionLevel>(getSavedCompressionLevel())
 const compressFiles = ref<PdfFile[]>([])
 const mergeFiles = ref<PdfFile[]>([])
 const splitFiles = ref<PdfFile[]>([])
+const convertFiles = ref<PdfFile[]>([])
 const splitPageCount = ref<number | null>(null)
 const splitPageCountLoading = ref(false)
 const splitPageCountRequestId = ref(0)
@@ -101,6 +140,7 @@ const currentFileList = computed<PdfFile[]>({
   get() {
     if (activeTab.value === 'merge') return mergeFiles.value
     if (activeTab.value === 'split') return splitFiles.value
+    if (activeTab.value === 'convert') return convertFiles.value
     return compressFiles.value
   },
   set(value) {
@@ -114,14 +154,35 @@ const currentFileList = computed<PdfFile[]>({
       return
     }
 
-    if (activeTab.value === 'compress') {
-      compressFiles.value = value
+    if (activeTab.value === 'convert') {
+      convertFiles.value = value
+      return
     }
+
+    compressFiles.value = value
   },
+})
+
+const currentFileListTitle = computed(() => fileListTitles[activeTab.value])
+const outputFolderName = computed(() => {
+  if (!outputFolderPath.value) return '未设置'
+
+  const parts = outputFolderPath.value.split(/[\\/]/).filter(Boolean)
+  return parts[parts.length - 1] || outputFolderPath.value
+})
+
+onMounted(() => {
+  refreshOutputFolder()
 })
 
 watch(compressionLevel, (level) => {
   localStorage.setItem('compressionLevel', level)
+})
+
+watch(settingsVisible, (visible) => {
+  if (!visible) {
+    refreshOutputFolder()
+  }
 })
 
 watch(
@@ -159,12 +220,12 @@ watch(
       if (result.success && typeof result.pageCount === 'number') {
         splitPageCount.value = result.pageCount
       } else {
-        ElMessage.error(result.error || '读取 PDF 总页数失败')
+        ElMessage.error(result.error || '读取 PDF 页数失败')
       }
     } catch (err) {
       if (requestId === splitPageCountRequestId.value) {
-        ElMessage.error('读取 PDF 总页数失败')
-        console.log(err)
+        ElMessage.error('读取 PDF 页数失败')
+        console.error(err)
       }
     } finally {
       if (requestId === splitPageCountRequestId.value) {
@@ -175,17 +236,22 @@ watch(
   { deep: true },
 )
 
+const refreshOutputFolder = () => {
+  outputFolderPath.value = localStorage.getItem('outputFolder') || ''
+}
+
 const handleOpenSettings = () => {
   settingsVisible.value = true
 }
 
-const getFilesForTab = (tab: FileTab) => {
+const getFilesForTab = (tab: ToolTab) => {
   if (tab === 'merge') return mergeFiles.value
   if (tab === 'split') return splitFiles.value
+  if (tab === 'convert') return convertFiles.value
   return compressFiles.value
 }
 
-const setFilesForTab = (tab: FileTab, files: PdfFile[]) => {
+const setFilesForTab = (tab: ToolTab, files: PdfFile[]) => {
   if (tab === 'merge') {
     mergeFiles.value = files
     return
@@ -196,52 +262,66 @@ const setFilesForTab = (tab: FileTab, files: PdfFile[]) => {
     return
   }
 
+  if (tab === 'convert') {
+    convertFiles.value = files
+    return
+  }
+
   compressFiles.value = files
 }
 
-const updateFileList = (tab: FileTab, incomingFiles: PdfFile[]) => {
+const updateFileList = (tab: ToolTab, incomingFiles: PdfFile[]) => {
   if (!incomingFiles.length) return
 
   fileListVisible.value = true
 
   if (tab === 'split') {
     if (incomingFiles.length > 1) {
-      ElMessage.warning('PDF 拆分一次只能处理一个文件，已保留第一个文件')
+      ElMessage.warning('拆分功能一次只能处理一个 PDF，已保留第一个文件')
     }
 
     const [firstFile] = incomingFiles
     if (!firstFile) return
 
     setFilesForTab(tab, [firstFile])
-    ElMessage.success('文件已添加到列表')
+    ElMessage.success('已添加 1 个文件到拆分列表')
     return
   }
 
   setFilesForTab(tab, [...getFilesForTab(tab), ...incomingFiles])
-  ElMessage.success('文件已添加到列表')
+  ElMessage.success(`已添加 ${incomingFiles.length} 个文件到${toolLabels[tab]}列表`)
 }
 
 const handleCompressFileListUpdate = (files: PdfFile[]) => updateFileList('compress', files)
 const handleMergeFileListUpdate = (files: PdfFile[]) => updateFileList('merge', files)
 const handleSplitFileListUpdate = (files: PdfFile[]) => updateFileList('split', files)
+const handleConvertFileListUpdate = (files: PdfFile[]) => updateFileList('convert', files)
 const handleFileListVisibleChange = (visible: boolean) => {
   fileListVisible.value = visible
 }
 
 const requireOutputFolder = () => {
-  const outputFolder = localStorage.getItem('outputFolder')
+  refreshOutputFolder()
+  const outputFolder = outputFolderPath.value
 
   if (!outputFolder) {
-    ElMessage.error('请先设置输出文件夹')
+    ElMessage.error('请先在右上角设置输出目录')
     return null
   }
 
   return outputFolder
 }
 
+const toBinaryFiles = (files: PdfFile[]): PdfBinaryPayload[] => {
+  return files.map((item) => ({
+    name: item.name,
+    buffer: new Uint8Array(item.buffer),
+  }))
+}
+
 const handleCompress = async () => {
   if (!compressFiles.value.length) {
-    ElMessage.error('请先上传 PDF 文件')
+    ElMessage.error('请先上传要压缩的 PDF 文件')
     return
   }
 
@@ -251,22 +331,21 @@ const handleCompress = async () => {
   isLoading.value = true
 
   try {
-    const files = compressFiles.value.map((item) => ({
-      name: item.name,
-      buffer: new Uint8Array(item.buffer),
-    }))
-
-    const result = await window.electronAPI.compressPDFBuffer(files, outputFolder, compressionLevel.value)
+    const result = await window.electronAPI.compressPDFBuffer(
+      toBinaryFiles(compressFiles.value),
+      outputFolder,
+      compressionLevel.value,
+    )
 
     if (result.success) {
-      ElMessage.success('压缩完成')
+      ElMessage.success('压缩完成，结果已保存到输出目录')
     } else {
-      ElMessage.error('压缩失败')
-      console.log(result.error)
+      ElMessage.error(result.error || '压缩失败，请稍后重试')
+      console.error(result.error)
     }
   } catch (err) {
-    ElMessage.error('压缩失败')
-    console.log(err)
+    ElMessage.error('压缩失败，请稍后重试')
+    console.error(err)
   } finally {
     isLoading.value = false
   }
@@ -274,7 +353,7 @@ const handleCompress = async () => {
 
 const handleMerge = async () => {
   if (!mergeFiles.value.length) {
-    ElMessage.error('请先上传 PDF 文件')
+    ElMessage.error('请先上传要合并的 PDF 文件')
     return
   }
 
@@ -284,22 +363,17 @@ const handleMerge = async () => {
   isLoading.value = true
 
   try {
-    const files = mergeFiles.value.map((item) => ({
-      name: item.name,
-      buffer: new Uint8Array(item.buffer),
-    }))
-
-    const result = await window.electronAPI.mergePDFBuffer(files, outputFolder)
+    const result = await window.electronAPI.mergePDFBuffer(toBinaryFiles(mergeFiles.value), outputFolder)
 
     if (result.success) {
-      ElMessage.success('合并完成')
+      ElMessage.success('合并完成，结果已保存到输出目录')
     } else {
-      ElMessage.error('合并失败')
-      console.log(result.error)
+      ElMessage.error(result.error || '合并失败，请稍后重试')
+      console.error(result.error)
     }
   } catch (err) {
-    ElMessage.error('合并失败')
-    console.log(err)
+    ElMessage.error('合并失败，请稍后重试')
+    console.error(err)
   } finally {
     isLoading.value = false
   }
@@ -307,17 +381,17 @@ const handleMerge = async () => {
 
 const handleSplit = async (options: SplitSubmitOptions) => {
   if (!splitFiles.value.length) {
-    ElMessage.error('请先上传 PDF 文件')
+    ElMessage.error('请先上传要拆分的 PDF 文件')
     return
   }
 
   if (splitPageCountLoading.value) {
-    ElMessage.warning('正在读取 PDF 总页数，请稍候')
+    ElMessage.warning('正在读取 PDF 页数，请稍候')
     return
   }
 
   if (!splitPageCount.value) {
-    ElMessage.error('暂时无法读取 PDF 总页数')
+    ElMessage.error('暂时无法读取 PDF 页数')
     return
   }
 
@@ -342,17 +416,61 @@ const handleSplit = async (options: SplitSubmitOptions) => {
     if (result.success) {
       const outputFilesCount = result.outputFiles?.length ?? 0
       if (outputFilesCount > 1) {
-        ElMessage.success(`拆分完成，已生成 ${outputFilesCount} 个文档`)
+        ElMessage.success(`拆分完成，已生成 ${outputFilesCount} 个文件`)
       } else {
-        ElMessage.success('拆分完成')
+        ElMessage.success('拆分完成，结果已保存到输出目录')
       }
     } else {
-      ElMessage.error('拆分失败')
-      console.log(result.error)
+      ElMessage.error(result.error || '拆分失败，请稍后重试')
+      console.error(result.error)
     }
   } catch (err) {
-    ElMessage.error('拆分失败')
-    console.log(err)
+    ElMessage.error('拆分失败，请稍后重试')
+    console.error(err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleConvert = async (options: ConvertSubmitOptions) => {
+  if (!convertFiles.value.length) {
+    ElMessage.error('请先上传要转换的 PDF 文件')
+    return
+  }
+
+  const outputFolder = requireOutputFolder()
+  if (!outputFolder) return
+
+  isLoading.value = true
+
+  try {
+    const result = await window.electronAPI.convertPDFBuffer(
+      toBinaryFiles(convertFiles.value),
+      outputFolder,
+      options,
+    )
+
+    if (result.success) {
+      const convertResults = result.results ?? []
+      const totalImages = convertResults.reduce((count, item) => count + item.outputFiles.length, 0)
+      const outputFolders = convertResults.length
+
+      if (totalImages > 0) {
+        if (outputFolders > 1) {
+          ElMessage.success(`格式转换完成，已导出 ${totalImages} 张图片，共 ${outputFolders} 个文件夹`)
+        } else {
+          ElMessage.success(`格式转换完成，已导出 ${totalImages} 张图片`)
+        }
+      } else {
+        ElMessage.success('格式转换完成，结果已保存到输出目录')
+      }
+    } else {
+      ElMessage.error(result.error || '格式转换失败，请稍后重试')
+      console.error(result.error)
+    }
+  } catch (err) {
+    ElMessage.error('格式转换失败，请稍后重试')
+    console.error(err)
   } finally {
     isLoading.value = false
   }
@@ -360,86 +478,214 @@ const handleSplit = async (options: SplitSubmitOptions) => {
 </script>
 
 <style scoped lang="scss">
-.container {
-  background: #fff;
-  padding: 40px 50px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 540px;
+.workspace-shell {
+  width: min(920px, calc(100vw - 48px));
+  min-height: 680px;
+  max-height: calc(100vh - 48px);
+  padding: 18px;
+  display: flex;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  box-shadow: 0 24px 60px rgba(31, 41, 55, 0.14);
+  backdrop-filter: blur(18px);
   position: relative;
-  min-height: 620px;
-  overflow: hidden;
+}
 
-  .setting-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 20px;
-    cursor: pointer;
-    color: #333;
-    transition: color 0.3s;
+.workspace-shell--collapsed {
+  grid-template-columns: minmax(0, 1fr) 76px;
+}
 
-    &:hover {
-      color: #409eff;
-    }
+.workspace-main,
+.workspace-aside {
+  min-height: 0;
+}
+
+.workspace-main {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #fdfefe 100%);
+  border: 1px solid rgba(226, 232, 240, 0.88);
+  overflow: auto;
+}
+
+.workspace-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.header-copy {
+  max-width: 520px;
+
+  h1 {
+    margin: 10px 0 8px;
+    font-size: 30px;
+    line-height: 1.15;
+    color: #0f172a;
   }
 
-  .file-list-container {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 320px;
-    bottom: 16px;
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    z-index: 10;
-    transition: all 0.3s ease;
-    display: flex;
-    overflow: visible;
-
-    &.hide {
-      transform: translateX(104%);
-    }
-
-    &:hover {
-      &.hide {
-        transform: translateX(100%);
-      }
-    }
+  p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.7;
   }
 }
 
-h2 {
-  margin-bottom: 20px;
-  color: #333;
+.header-kicker {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(64, 158, 255, 0.1);
+  color: #2b6cb0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.header-side {
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.output-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f3f8ff 0%, #fafcff 100%);
+  border: 1px solid #dbe9f8;
+  text-align: left;
+
+  strong {
+    display: block;
+    margin: 6px 0 8px;
+    font-size: 18px;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.6;
+    word-break: break-all;
+  }
+}
+
+.output-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2b6cb0;
+}
+
+.settings-button {
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #409eff 0%, #267df2 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 14px 28px rgba(64, 158, 255, 0.24);
+}
+
+.settings-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 32px rgba(64, 158, 255, 0.3);
 }
 
 .tool-tabs {
-  margin-top: 10px;
+  flex: 1;
+  min-height: 0;
 }
 
-.placeholder {
-  padding: 40px;
-  color: #888;
-}
-
-.tag {
+.workspace-footer {
+  margin-top: 14px;
   font-size: 12px;
-  color: #999;
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
+  color: #94a3b8;
+  text-align: left;
+}
+
+.workspace-aside {
+  position: absolute;
+  top: 20px;
+  right: 0;
+  bottom: 20px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(252, 254, 255, 0.96) 0%, rgba(244, 248, 251, 0.98) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  overflow: hidden;
+}
+
+:deep(.el-tabs__header) {
+  margin-bottom: 18px;
+}
+
+:deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background-color: #e7edf5;
+}
+
+:deep(.el-tabs__item) {
+  height: 42px;
+  padding: 0 18px;
+  font-size: 15px;
+  color: #64748b;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+:deep(.el-tabs__active-bar) {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
+}
+
+:deep(.el-tabs__content) {
+  overflow: visible;
+}
+
+@media (max-width: 900px) {
+  .workspace-shell,
+  .workspace-shell--collapsed {
+    width: calc(100vw - 32px);
+    max-height: none;
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-header {
+    flex-direction: column;
+  }
+
+  .header-side {
+    min-width: 0;
+  }
+
+  .workspace-aside {
+    min-height: 120px;
+  }
 }
 
 @media (max-width: 720px) {
-  .container {
-    width: calc(100vw - 32px);
-    min-height: 520px;
-    padding: 32px 20px;
+  .workspace-main {
+    padding: 18px;
+  }
+
+  .header-copy {
+    h1 {
+      font-size: 24px;
+    }
   }
 }
 </style>

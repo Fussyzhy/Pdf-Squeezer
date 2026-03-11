@@ -3,13 +3,33 @@
 </template>
 
 <style lang="scss">
-html, body {
-  height: 100%;       /* 确保 body 高度撑满视口 */
-  margin: 0;          /* 去掉默认 margin */
-  display: flex;      /* 使用 Flex 布局 */
-  justify-content: center; /* 水平居中 */
-  align-items: center;     /* 垂直居中 */
-  background: #f4f6f8;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(circle at top left, rgba(111, 178, 255, 0.22), transparent 32%),
+    radial-gradient(circle at right bottom, rgba(103, 194, 58, 0.16), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #f5f8f2 100%);
+  color: #1f2937;
+  font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', sans-serif;
+}
+
+#app {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 </style>
