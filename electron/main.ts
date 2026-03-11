@@ -1,4 +1,4 @@
-import { createRequire } from 'module'
+﻿import { createRequire } from 'module'
 import fs from 'fs'
 import { compressPDF, mergePDF } from './util/pdf-editor.ts'
 import { convertPDF, type PdfConvertOptions } from './util/pdf-convert.ts'
@@ -24,7 +24,7 @@ function createWindow() {
       preload: path.join(import.meta.dirname, 'preload.ts'),
     },
     icon: path.join(import.meta.dirname, 'icon.ico'),
-    resizable: false,
+    // resizable: false,
   })
 
   win.setMenu(null)

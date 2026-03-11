@@ -4,8 +4,11 @@
       class="drawer-toggle"
       type="button"
       @click="emit('update:visible', !visible)"
+      :class="{ 'expanded': !visible }"
     >
-      {{ visible ? '收起' : '展开' }}
+      <el-icon class="drawer-icon">
+        <arrow-right />
+      </el-icon>
     </button>
 
     <template v-if="visible">
@@ -61,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import { ArrowLeft } from '@element-plus/icons-vue';
 import { computed, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 
@@ -146,6 +150,22 @@ const formatSize = (size: number) => {
   color: #475569;
   font-size: 12px;
   cursor: pointer;
+  transition: width 0.3s ease;
+
+  &.expanded {
+    width: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .drawer-icon {
+      transform: rotate(180deg);
+    }
+  }
+
+  .drawer-icon {
+    transition: transform 0.3s ease;
+  }
 }
 
 .file-drawer--collapsed .drawer-toggle {

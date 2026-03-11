@@ -1,13 +1,13 @@
-<template>
+﻿<template>
   <div
     class="workspace-shell"
     :class="{ 'workspace-shell--collapsed': !fileListVisible }"
     v-loading="isLoading"
   >
-    <section class="workspace-main">
+    <el-scrollbar class="workspace-main">
       <header class="workspace-header">
         <div class="header-copy">
-          <span class="header-kicker">PDF 效率工具</span>
+          <span class="header-kicker">PDF Squeezer</span>
           <h1>压缩、合并、拆分与格式转换</h1>
           <p>上传文件后即可在当前页完成处理，右侧文件区支持查看、删除和拖拽排序。</p>
         </div>
@@ -58,8 +58,8 @@
         </el-tab-pane>
       </el-tabs>
 
-      <div class="workspace-footer">Haoyang 设计</div>
-    </section>
+      <!-- <div class="workspace-footer">Haoyang 设计</div> -->
+    </el-scrollbar>
 
     <aside class="workspace-aside">
       <pdf-file-list
@@ -480,7 +480,7 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
 <style scoped lang="scss">
 .workspace-shell {
   width: min(920px, calc(100vw - 48px));
-  min-height: 680px;
+  max-height: calc(100vh - 48px);
   max-height: calc(100vh - 48px);
   padding: 18px;
   display: flex;
@@ -489,6 +489,8 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
   border: 1px solid rgba(255, 255, 255, 0.76);
   box-shadow: 0 24px 60px rgba(31, 41, 55, 0.14);
   backdrop-filter: blur(18px);
+  flex: 1;
+  gap: 24px;
   position: relative;
 }
 
@@ -509,6 +511,9 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #fdfefe 100%);
   border: 1px solid rgba(226, 232, 240, 0.88);
   overflow: auto;
+  height: 100%;
+  margin-right: 60px;
+  flex: 1;
 }
 
 .workspace-header {
@@ -615,14 +620,14 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
 }
 
 .workspace-aside {
-  position: absolute;
-  top: 20px;
-  right: 0;
-  bottom: 20px;
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(252, 254, 255, 0.96) 0%, rgba(244, 248, 251, 0.98) 100%);
   border: 1px solid rgba(226, 232, 240, 0.9);
   overflow: hidden;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  bottom: 18px;
 }
 
 :deep(.el-tabs__header) {
