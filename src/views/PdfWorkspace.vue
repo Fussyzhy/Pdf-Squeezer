@@ -8,7 +8,7 @@
       <header class="workspace-header">
         <div class="header-copy">
           <span class="header-kicker">PDF Squeezer</span>
-          <h1>压缩、合并、拆分与格式转换</h1>
+          <h1>压缩、合并、拆分、格式转换与水印</h1>
           <p>上传文件后即可在当前页完成处理，右侧文件区支持查看、删除和拖拽排序。</p>
         </div>
 
@@ -56,6 +56,13 @@
             @handle-convert="handleConvert"
           />
         </el-tab-pane>
+
+        <el-tab-pane label="水印" name="watermark">
+          <watermark-view
+            @update:fileList="handleWatermarkFileListUpdate"
+            @handle-watermark="handleWatermark"
+          />
+        </el-tab-pane>
       </el-tabs>
 
       <!-- <div class="workspace-footer">Haoyang 设计</div> -->
@@ -83,9 +90,10 @@ import MergeView from '@/views/components/MergeView.vue'
 import PdfFileList from '@/views/components/PdfFileList.vue'
 import SplitView from '@/views/components/SplitView.vue'
 import SystemSettingDialog from '@/views/components/dialog/SystemSettingDialog.vue'
+import WatermarkView from '@/views/components/WatermarkView.vue'
 
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
-type ToolTab = 'compress' | 'merge' | 'split' | 'convert'
+type ToolTab = 'compress' | 'merge' | 'split' | 'convert' | 'watermark'
 type PdfFile = { name: string; buffer: ArrayBuffer }
 type PdfBinaryPayload = { name: string; buffer: Uint8Array }
 type SplitSubmitOptions =
@@ -97,6 +105,24 @@ type ConvertSubmitOptions = {
   dpi: number
 }
 
+type WatermarkPlacement = 'center' | 'tile'
+type WatermarkImagePayload = {
+  data: Uint8Array
+  width: number
+  height: number
+  format: 'png' | 'jpeg'
+}
+type WatermarkSubmitOptions = {
+  watermarkImage: WatermarkImagePayload
+  placement: WatermarkPlacement
+  opacity: number
+  rotation: number
+  size: number
+  tileGap: number
+  offsetX: number
+  offsetY: number
+}
+
 const DEFAULT_COMPRESSION_LEVEL: CompressionLevel = 'ebook'
 const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default']
 const toolLabels: Record<ToolTab, string> = {
@@ -104,12 +130,14 @@ const toolLabels: Record<ToolTab, string> = {
   merge: '合并',
   split: '拆分',
   convert: '格式转换',
+  watermark: '水印',
 }
 const fileListTitles: Record<ToolTab, string> = {
   compress: '压缩文件',
   merge: '合并队列',
   split: '拆分文件',
   convert: '转换文件',
+  watermark: '水印文件',
 }
 
 const getSavedCompressionLevel = (): CompressionLevel => {
@@ -132,6 +160,7 @@ const compressFiles = ref<PdfFile[]>([])
 const mergeFiles = ref<PdfFile[]>([])
 const splitFiles = ref<PdfFile[]>([])
 const convertFiles = ref<PdfFile[]>([])
+const watermarkFiles = ref<PdfFile[]>([])
 const splitPageCount = ref<number | null>(null)
 const splitPageCountLoading = ref(false)
 const splitPageCountRequestId = ref(0)
@@ -141,6 +170,7 @@ const currentFileList = computed<PdfFile[]>({
     if (activeTab.value === 'merge') return mergeFiles.value
     if (activeTab.value === 'split') return splitFiles.value
     if (activeTab.value === 'convert') return convertFiles.value
+    if (activeTab.value === 'watermark') return watermarkFiles.value
     return compressFiles.value
   },
   set(value) {
@@ -156,6 +186,11 @@ const currentFileList = computed<PdfFile[]>({
 
     if (activeTab.value === 'convert') {
       convertFiles.value = value
+      return
+    }
+
+    if (activeTab.value === 'watermark') {
+      watermarkFiles.value = value
       return
     }
 
@@ -248,6 +283,7 @@ const getFilesForTab = (tab: ToolTab) => {
   if (tab === 'merge') return mergeFiles.value
   if (tab === 'split') return splitFiles.value
   if (tab === 'convert') return convertFiles.value
+  if (tab === 'watermark') return watermarkFiles.value
   return compressFiles.value
 }
 
@@ -264,6 +300,11 @@ const setFilesForTab = (tab: ToolTab, files: PdfFile[]) => {
 
   if (tab === 'convert') {
     convertFiles.value = files
+    return
+  }
+
+  if (tab === 'watermark') {
+    watermarkFiles.value = files
     return
   }
 
@@ -296,6 +337,7 @@ const handleCompressFileListUpdate = (files: PdfFile[]) => updateFileList('compr
 const handleMergeFileListUpdate = (files: PdfFile[]) => updateFileList('merge', files)
 const handleSplitFileListUpdate = (files: PdfFile[]) => updateFileList('split', files)
 const handleConvertFileListUpdate = (files: PdfFile[]) => updateFileList('convert', files)
+const handleWatermarkFileListUpdate = (files: PdfFile[]) => updateFileList('watermark', files)
 const handleFileListVisibleChange = (visible: boolean) => {
   fileListVisible.value = visible
 }
@@ -470,6 +512,43 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
     }
   } catch (err) {
     ElMessage.error('格式转换失败，请稍后重试')
+    console.error(err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleWatermark = async (options: WatermarkSubmitOptions) => {
+  if (!watermarkFiles.value.length) {
+    ElMessage.error('请先上传要加水印的 PDF 文件')
+    return
+  }
+
+  const outputFolder = requireOutputFolder()
+  if (!outputFolder) return
+
+  isLoading.value = true
+
+  try {
+    const result = await window.electronAPI.watermarkPDFBuffer(
+      toBinaryFiles(watermarkFiles.value),
+      outputFolder,
+      options,
+    )
+
+    if (result.success) {
+      const outputFilesCount = result.outputFiles?.length ?? 0
+      if (outputFilesCount > 1) {
+        ElMessage.success(`水印完成，已生成 ${outputFilesCount} 个文件`)
+      } else {
+        ElMessage.success('水印完成，结果已保存到输出目录')
+      }
+    } else {
+      ElMessage.error(result.error || '水印失败，请稍后重试')
+      console.error(result.error)
+    }
+  } catch (err) {
+    ElMessage.error('水印失败，请稍后重试')
     console.error(err)
   } finally {
     isLoading.value = false

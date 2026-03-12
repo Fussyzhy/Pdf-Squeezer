@@ -21,5 +21,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SplitView: typeof import('./views/components/SplitView.vue')['default']
     SystemSettingDialog: typeof import('./views/components/dialog/SystemSettingDialog.vue')['default']
+    WatermarkView: typeof import('./views/components/WatermarkView.vue')['default']
   }
 }

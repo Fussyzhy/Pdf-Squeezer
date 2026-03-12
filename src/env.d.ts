@@ -1,4 +1,4 @@
-export {}
+﻿export {}
 
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
 type PdfFileData = { name: string; buffer: ArrayBuffer }
@@ -18,6 +18,27 @@ type SplitOptions =
   | { mode: 'interval'; pagesPerFile: number }
   | { mode: 'custom'; pageRanges: string }
 
+type WatermarkImagePayload = {
+  data: Uint8Array
+  width: number
+  height: number
+  format: 'png' | 'jpeg'
+}
+
+type WatermarkOptions = {
+  placement: 'center' | 'tile'
+  opacity: number
+  rotation: number
+  size: number
+  tileGap: number
+  offsetX: number
+  offsetY: number
+}
+
+type WatermarkSubmitOptions = WatermarkOptions & {
+  watermarkImage: WatermarkImagePayload
+}
+
 declare global {
   interface Window {
     electronAPI: {
@@ -28,6 +49,7 @@ declare global {
       convertPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, options: PdfConvertOptions) => Promise<{ success: boolean; error?: string; results?: PdfConvertResult[] }>
       getPDFPageCount: (inputFile: PdfBinaryPayload) => Promise<{ success: boolean; pageCount?: number; error?: string }>
       splitPDFBuffer: (inputFile: PdfBinaryPayload, outputFolder: string, options: SplitOptions) => Promise<{ success: boolean; error?: string; outputFiles?: string[]; pageCount?: number }>
+      watermarkPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, options: WatermarkSubmitOptions) => Promise<{ success: boolean; error?: string; outputFiles?: string[] }>
     }
   }
 }

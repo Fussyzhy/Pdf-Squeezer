@@ -3,6 +3,7 @@ import fs from 'fs'
 import { compressPDF, mergePDF } from './util/pdf-editor.ts'
 import { convertPDF, type PdfConvertOptions } from './util/pdf-convert.ts'
 import { getPDFPageCount, splitPDF, type PdfFile, type SplitOptions } from './util/pdf-split.ts'
+import { addWatermark, type WatermarkImage, type WatermarkOptions } from './util/pdf-watermark.ts'
 
 const require = createRequire(import.meta.url)
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
@@ -11,6 +12,8 @@ const path = require('path')
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
 type RendererPdfBuffer = Uint8Array | ArrayBuffer
 type RendererPdfFile = { name: string; buffer: RendererPdfBuffer }
+type WatermarkImagePayload = { data: RendererPdfBuffer; width: number; height: number; format: 'png' | 'jpeg' }
+type WatermarkSubmitOptions = WatermarkOptions & { watermarkImage: WatermarkImagePayload }
 
 const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default']
 
@@ -138,6 +141,28 @@ ipcMain.handle('split-pdf-buffer', async (_event: unknown, file: RendererPdfFile
   try {
     const result = await splitPDF(toBufferFile(file), outputFolder, options)
     return { success: true, outputFiles: result.outputFiles, pageCount: result.pageCount }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('watermark-pdf-buffer', async (_event: unknown, files: RendererPdfFile[], outputFolder: string, options: WatermarkSubmitOptions) => {
+  try {
+    if (!options?.watermarkImage) {
+      return { success: false, error: 'Watermark image is required' }
+    }
+
+    const watermarkImage: WatermarkImage = {
+      data: toNodeBuffer(options.watermarkImage.data),
+      width: options.watermarkImage.width,
+      height: options.watermarkImage.height,
+      format: options.watermarkImage.format,
+    }
+
+    const { watermarkImage: _ignored, ...watermarkOptions } = options
+    const result = await addWatermark(files.map(toBufferFile), outputFolder, watermarkImage, watermarkOptions)
+
+    return { success: true, outputFiles: result.outputFiles }
   } catch (err: any) {
     return { success: false, error: err.message }
   }

@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
+﻿const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
   selectInputFiles: (multiple = true) => ipcRenderer.invoke('select-input-files', multiple),
@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   convertPDFBuffer: (inputFiles, outputFolder, options) => ipcRenderer.invoke('convert-pdf-buffer', inputFiles, outputFolder, options),
   getPDFPageCount: (inputFile) => ipcRenderer.invoke('get-pdf-page-count', inputFile),
   splitPDFBuffer: (inputFile, outputFolder, options) => ipcRenderer.invoke('split-pdf-buffer', inputFile, outputFolder, options),
+  watermarkPDFBuffer: (inputFiles, outputFolder, options) => ipcRenderer.invoke('watermark-pdf-buffer', inputFiles, outputFolder, options),
 })
