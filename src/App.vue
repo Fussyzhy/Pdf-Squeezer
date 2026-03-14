@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <router-view />
 </template>
 
@@ -14,11 +14,9 @@ body,
 }
 
 body {
+  min-height: 100vh;
   margin: 0;
   padding: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background:
     radial-gradient(circle at top left, rgba(111, 178, 255, 0.22), transparent 32%),
     radial-gradient(circle at right bottom, rgba(103, 194, 58, 0.16), transparent 28%),
@@ -29,6 +27,7 @@ body {
 
 #app {
   width: 100%;
+  min-height: calc(100vh - 48px);
   display: flex;
   justify-content: center;
 }

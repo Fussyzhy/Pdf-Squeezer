@@ -2,14 +2,23 @@
   <div
     class="workspace-shell"
     :class="{ 'workspace-shell--collapsed': !fileListVisible }"
+    :style="{ '--tool-accent': currentTool.accent }"
     v-loading="isLoading"
   >
     <el-scrollbar class="workspace-main">
       <header class="workspace-header">
         <div class="header-copy">
-          <span class="header-kicker">PDF Squeezer</span>
-          <h1>压缩、合并、拆分、格式转换与水印</h1>
-          <p>上传文件后即可在当前页完成处理，右侧文件区支持查看、删除和拖拽排序。</p>
+          <button class="back-button" type="button" @click="handleGoHome">
+            返回首页
+          </button>
+
+          <span class="header-kicker">{{ currentTool.badge }}</span>
+          <h1>{{ currentTool.title }}</h1>
+          <p>{{ currentTool.description }}</p>
+
+          <div class="header-tags">
+            <span v-for="tag in currentTool.tags" :key="tag">{{ tag }}</span>
+          </div>
         </div>
 
         <div class="header-side">
@@ -19,59 +28,55 @@
             <p>{{ outputFolderPath || '尚未设置，处理前请先选择保存目录。' }}</p>
           </div>
 
-          <button class="settings-button" type="button" @click="handleOpenSettings">
-            输出设置
-          </button>
+          <div class="header-actions">
+            <button class="secondary-button" type="button" @click="handleGoHome">
+              功能首页
+            </button>
+            <button class="settings-button" type="button" @click="handleOpenSettings">
+              输出设置
+            </button>
+          </div>
         </div>
       </header>
 
-      <el-tabs v-model="activeTab" class="tool-tabs">
-        <el-tab-pane label="压缩" name="compress">
-          <compress-view
-            v-model:compression-level="compressionLevel"
-            @update:fileList="handleCompressFileListUpdate"
-            @handle-compress="handleCompress"
-          />
-        </el-tab-pane>
+      <compress-view
+        v-if="tool === 'compress'"
+        v-model:compression-level="compressionLevel"
+        @update:fileList="handleCompressFileListUpdate"
+        @handle-compress="handleCompress"
+      />
 
-        <el-tab-pane label="合并" name="merge">
-          <merge-view
-            @update:fileList="handleMergeFileListUpdate"
-            @handle-merge="handleMerge"
-          />
-        </el-tab-pane>
+      <merge-view
+        v-else-if="tool === 'merge'"
+        @update:fileList="handleMergeFileListUpdate"
+        @handle-merge="handleMerge"
+      />
 
-        <el-tab-pane label="拆分" name="split">
-          <split-view
-            :page-count="splitPageCount"
-            :page-count-loading="splitPageCountLoading"
-            @update:fileList="handleSplitFileListUpdate"
-            @handle-split="handleSplit"
-          />
-        </el-tab-pane>
+      <split-view
+        v-else-if="tool === 'split'"
+        :page-count="splitPageCount"
+        :page-count-loading="splitPageCountLoading"
+        @update:fileList="handleSplitFileListUpdate"
+        @handle-split="handleSplit"
+      />
 
-        <el-tab-pane label="格式转换" name="convert">
-          <convert-view
-            @update:fileList="handleConvertFileListUpdate"
-            @handle-convert="handleConvert"
-          />
-        </el-tab-pane>
+      <convert-view
+        v-else-if="tool === 'convert'"
+        @update:fileList="handleConvertFileListUpdate"
+        @handle-convert="handleConvert"
+      />
 
-        <el-tab-pane label="水印" name="watermark">
-          <watermark-view
-            @update:fileList="handleWatermarkFileListUpdate"
-            @handle-watermark="handleWatermark"
-          />
-        </el-tab-pane>
-      </el-tabs>
-
-      <!-- <div class="workspace-footer">Haoyang 设计</div> -->
+      <watermark-view
+        v-else
+        @update:fileList="handleWatermarkFileListUpdate"
+        @handle-watermark="handleWatermark"
+      />
     </el-scrollbar>
 
     <aside class="workspace-aside">
       <pdf-file-list
         v-model="currentFileList"
-        :title="currentFileListTitle"
+        :title="currentTool.drawerTitle"
         :visible="fileListVisible"
         @update:visible="handleFileListVisibleChange"
       />
@@ -84,6 +89,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import CompressView from '@/views/components/CompressView.vue'
 import ConvertView from '@/views/components/ConvertView.vue'
 import MergeView from '@/views/components/MergeView.vue'
@@ -91,9 +97,9 @@ import PdfFileList from '@/views/components/PdfFileList.vue'
 import SplitView from '@/views/components/SplitView.vue'
 import SystemSettingDialog from '@/views/components/dialog/SystemSettingDialog.vue'
 import WatermarkView from '@/views/components/WatermarkView.vue'
+import { TOOL_CONFIG_MAP, type ToolId } from '@/views/tool-config'
 
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
-type ToolTab = 'compress' | 'merge' | 'split' | 'convert' | 'watermark'
 type PdfFile = { name: string; buffer: ArrayBuffer }
 type PdfBinaryPayload = { name: string; buffer: Uint8Array }
 type SplitSubmitOptions =
@@ -104,7 +110,6 @@ type ConvertSubmitOptions = {
   imageFormat: 'png' | 'jpeg'
   dpi: number
 }
-
 type WatermarkPlacement = 'center' | 'tile'
 type WatermarkImagePayload = {
   data: Uint8Array
@@ -123,22 +128,13 @@ type WatermarkSubmitOptions = {
   offsetY: number
 }
 
+const props = defineProps<{
+  tool: ToolId
+}>()
+
+const router = useRouter()
 const DEFAULT_COMPRESSION_LEVEL: CompressionLevel = 'ebook'
 const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'prepress', 'default']
-const toolLabels: Record<ToolTab, string> = {
-  compress: '压缩',
-  merge: '合并',
-  split: '拆分',
-  convert: '格式转换',
-  watermark: '水印',
-}
-const fileListTitles: Record<ToolTab, string> = {
-  compress: '压缩文件',
-  merge: '合并队列',
-  split: '拆分文件',
-  convert: '转换文件',
-  watermark: '水印文件',
-}
 
 const getSavedCompressionLevel = (): CompressionLevel => {
   const savedLevel = localStorage.getItem('compressionLevel')
@@ -150,7 +146,6 @@ const getSavedCompressionLevel = (): CompressionLevel => {
   return DEFAULT_COMPRESSION_LEVEL
 }
 
-const activeTab = ref<ToolTab>('compress')
 const isLoading = ref(false)
 const settingsVisible = ref(false)
 const fileListVisible = ref(false)
@@ -165,45 +160,53 @@ const splitPageCount = ref<number | null>(null)
 const splitPageCountLoading = ref(false)
 const splitPageCountRequestId = ref(0)
 
-const currentFileList = computed<PdfFile[]>({
-  get() {
-    if (activeTab.value === 'merge') return mergeFiles.value
-    if (activeTab.value === 'split') return splitFiles.value
-    if (activeTab.value === 'convert') return convertFiles.value
-    if (activeTab.value === 'watermark') return watermarkFiles.value
-    return compressFiles.value
-  },
-  set(value) {
-    if (activeTab.value === 'merge') {
-      mergeFiles.value = value
-      return
-    }
-
-    if (activeTab.value === 'split') {
-      splitFiles.value = value
-      return
-    }
-
-    if (activeTab.value === 'convert') {
-      convertFiles.value = value
-      return
-    }
-
-    if (activeTab.value === 'watermark') {
-      watermarkFiles.value = value
-      return
-    }
-
-    compressFiles.value = value
-  },
-})
-
-const currentFileListTitle = computed(() => fileListTitles[activeTab.value])
+const currentTool = computed(() => TOOL_CONFIG_MAP[props.tool])
 const outputFolderName = computed(() => {
   if (!outputFolderPath.value) return '未设置'
 
   const parts = outputFolderPath.value.split(/[\\/]/).filter(Boolean)
   return parts[parts.length - 1] || outputFolderPath.value
+})
+
+const getFilesForTool = (tool: ToolId) => {
+  if (tool === 'merge') return mergeFiles.value
+  if (tool === 'split') return splitFiles.value
+  if (tool === 'convert') return convertFiles.value
+  if (tool === 'watermark') return watermarkFiles.value
+  return compressFiles.value
+}
+
+const setFilesForTool = (tool: ToolId, files: PdfFile[]) => {
+  if (tool === 'merge') {
+    mergeFiles.value = files
+    return
+  }
+
+  if (tool === 'split') {
+    splitFiles.value = files
+    return
+  }
+
+  if (tool === 'convert') {
+    convertFiles.value = files
+    return
+  }
+
+  if (tool === 'watermark') {
+    watermarkFiles.value = files
+    return
+  }
+
+  compressFiles.value = files
+}
+
+const currentFileList = computed<PdfFile[]>({
+  get() {
+    return getFilesForTool(props.tool)
+  },
+  set(value) {
+    setFilesForTool(props.tool, value)
+  },
 })
 
 onMounted(() => {
@@ -219,6 +222,14 @@ watch(settingsVisible, (visible) => {
     refreshOutputFolder()
   }
 })
+
+watch(
+  () => props.tool,
+  (tool) => {
+    fileListVisible.value = getFilesForTool(tool).length > 0
+  },
+  { immediate: true },
+)
 
 watch(
   splitFiles,
@@ -275,48 +286,20 @@ const refreshOutputFolder = () => {
   outputFolderPath.value = localStorage.getItem('outputFolder') || ''
 }
 
+const handleGoHome = () => {
+  router.push('/')
+}
+
 const handleOpenSettings = () => {
   settingsVisible.value = true
 }
 
-const getFilesForTab = (tab: ToolTab) => {
-  if (tab === 'merge') return mergeFiles.value
-  if (tab === 'split') return splitFiles.value
-  if (tab === 'convert') return convertFiles.value
-  if (tab === 'watermark') return watermarkFiles.value
-  return compressFiles.value
-}
-
-const setFilesForTab = (tab: ToolTab, files: PdfFile[]) => {
-  if (tab === 'merge') {
-    mergeFiles.value = files
-    return
-  }
-
-  if (tab === 'split') {
-    splitFiles.value = files
-    return
-  }
-
-  if (tab === 'convert') {
-    convertFiles.value = files
-    return
-  }
-
-  if (tab === 'watermark') {
-    watermarkFiles.value = files
-    return
-  }
-
-  compressFiles.value = files
-}
-
-const updateFileList = (tab: ToolTab, incomingFiles: PdfFile[]) => {
+const updateFileList = (tool: ToolId, incomingFiles: PdfFile[]) => {
   if (!incomingFiles.length) return
 
   fileListVisible.value = true
 
-  if (tab === 'split') {
+  if (tool === 'split') {
     if (incomingFiles.length > 1) {
       ElMessage.warning('拆分功能一次只能处理一个 PDF，已保留第一个文件')
     }
@@ -324,13 +307,13 @@ const updateFileList = (tab: ToolTab, incomingFiles: PdfFile[]) => {
     const [firstFile] = incomingFiles
     if (!firstFile) return
 
-    setFilesForTab(tab, [firstFile])
+    setFilesForTool(tool, [firstFile])
     ElMessage.success('已添加 1 个文件到拆分列表')
     return
   }
 
-  setFilesForTab(tab, [...getFilesForTab(tab), ...incomingFiles])
-  ElMessage.success(`已添加 ${incomingFiles.length} 个文件到${toolLabels[tab]}列表`)
+  setFilesForTool(tool, [...getFilesForTool(tool), ...incomingFiles])
+  ElMessage.success(`已添加 ${incomingFiles.length} 个文件到${TOOL_CONFIG_MAP[tool].drawerTitle}`)
 }
 
 const handleCompressFileListUpdate = (files: PdfFile[]) => updateFileList('compress', files)
@@ -338,6 +321,7 @@ const handleMergeFileListUpdate = (files: PdfFile[]) => updateFileList('merge', 
 const handleSplitFileListUpdate = (files: PdfFile[]) => updateFileList('split', files)
 const handleConvertFileListUpdate = (files: PdfFile[]) => updateFileList('convert', files)
 const handleWatermarkFileListUpdate = (files: PdfFile[]) => updateFileList('watermark', files)
+
 const handleFileListVisibleChange = (visible: boolean) => {
   fileListVisible.value = visible
 }
@@ -558,8 +542,7 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
 
 <style scoped lang="scss">
 .workspace-shell {
-  width: min(920px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px);
+  width: min(980px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   padding: 18px;
   display: flex;
@@ -604,20 +587,38 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
 }
 
 .header-copy {
-  max-width: 520px;
+  max-width: 560px;
 
   h1 {
-    margin: 10px 0 8px;
-    font-size: 30px;
-    line-height: 1.15;
+    margin: 12px 0 8px;
+    font-size: 32px;
+    line-height: 1.1;
     color: #0f172a;
+    letter-spacing: -0.04em;
   }
 
   p {
     margin: 0;
     color: #64748b;
-    line-height: 1.7;
+    line-height: 1.8;
   }
+}
+
+.back-button {
+  margin-bottom: 14px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.36);
+  background: rgba(255, 255, 255, 0.86);
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  border-color: var(--tool-accent);
+  color: var(--tool-accent);
 }
 
 .header-kicker {
@@ -626,14 +627,32 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   height: 28px;
   padding: 0 12px;
   border-radius: 999px;
-  background: rgba(64, 158, 255, 0.1);
-  color: #2b6cb0;
+  background: color-mix(in srgb, var(--tool-accent) 12%, white);
+  color: var(--tool-accent);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.header-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+
+  span {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid #e5edf6;
+    color: #5b6776;
+    font-size: 12px;
+  }
 }
 
 .header-side {
-  min-width: 240px;
+  min-width: 260px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -668,34 +687,43 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   color: #2b6cb0;
 }
 
+.header-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.secondary-button,
 .settings-button {
   height: 46px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, #409eff 0%, #267df2 100%);
-  color: #fff;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 14px 28px rgba(64, 158, 255, 0.24);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.94);
+  color: #334155;
+  border: 1px solid rgba(203, 213, 225, 0.88);
+}
+
+.secondary-button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--tool-accent) 32%, white);
+  color: var(--tool-accent);
+}
+
+.settings-button {
+  background: linear-gradient(135deg, var(--tool-accent) 0%, color-mix(in srgb, var(--tool-accent) 78%, black) 100%);
+  color: #fff;
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--tool-accent) 24%, transparent);
 }
 
 .settings-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 32px rgba(64, 158, 255, 0.3);
-}
-
-.tool-tabs {
-  flex: 1;
-  min-height: 0;
-}
-
-.workspace-footer {
-  margin-top: 14px;
-  font-size: 12px;
-  color: #94a3b8;
-  text-align: left;
 }
 
 .workspace-aside {
@@ -708,37 +736,6 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   right: 18px;
   bottom: 18px;
   z-index: 1000;
-}
-
-:deep(.el-tabs__header) {
-  margin-bottom: 18px;
-}
-
-:deep(.el-tabs__nav-wrap::after) {
-  height: 1px;
-  background-color: #e7edf5;
-}
-
-:deep(.el-tabs__item) {
-  height: 42px;
-  padding: 0 18px;
-  font-size: 15px;
-  color: #64748b;
-}
-
-:deep(.el-tabs__item.is-active) {
-  color: #1d4ed8;
-  font-weight: 600;
-}
-
-:deep(.el-tabs__active-bar) {
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
-}
-
-:deep(.el-tabs__content) {
-  overflow: visible;
 }
 
 @media (max-width: 900px) {
@@ -759,18 +756,24 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
 
   .workspace-aside {
     min-height: 120px;
+    position: static;
   }
 }
 
 @media (max-width: 720px) {
   .workspace-main {
     padding: 18px;
+    margin-right: 0;
   }
 
   .header-copy {
     h1 {
-      font-size: 24px;
+      font-size: 26px;
     }
+  }
+
+  .header-actions {
+    grid-template-columns: 1fr;
   }
 }
 </style>
