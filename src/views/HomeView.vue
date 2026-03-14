@@ -3,30 +3,74 @@
     <div class="home-panel">
       <section class="hero-card">
         <div class="hero-copy">
-          <span class="hero-badge">PDF Squeezer</span>
-          <h1>你的一站式 PDF 处理助手</h1>
+          <div class="hero-copy__top">
+            <span class="hero-badge">PDF Squeezer</span>
+            <span class="hero-kicker">Local-first</span>
+          </div>
+
+          <h1>你的本地 PDF 工作台</h1>
           <p>
-            当前项目已经支持压缩、合并、拆分、格式转换和水印。首页先做能力选择，后续每个功能都在独立页面里完成，流程会更清楚。
+            压缩、合并、拆分、格式转换和水印，全都从这里进入。选一个任务，直接进对应页面开始处理。
           </p>
+<!-- 
+          <div class="hero-actions">
+            <RouterLink :to="primaryToolPath" class="hero-button hero-button--primary">
+              开始处理
+            </RouterLink>
+            <a href="#tool-grid" class="hero-button hero-button--ghost">
+              查看功能
+            </a>
+          </div> -->
+
+          <div class="hero-notes">
+            <span>{{ toolCount }} 个功能</span>
+            <span>本地处理</span>
+            <span>统一输出目录</span>
+          </div>
         </div>
 
-        <div class="hero-metrics">
-          <div class="metric-card">
-            <strong>{{ toolCount }}</strong>
-            <span>可用功能</span>
-          </div>
-          <div class="metric-card">
-            <strong>Local</strong>
-            <span>本地处理</span>
-          </div>
-          <div class="metric-card">
-            <strong>Ghostscript</strong>
-            <span>核心引擎</span>
+        <div class="hero-visual">
+          <div class="visual-window">
+            <div class="visual-window__bar">
+              <div class="visual-dots">
+                <span class="visual-dot visual-dot--red" />
+                <span class="visual-dot visual-dot--yellow" />
+                <span class="visual-dot visual-dot--green" />
+              </div>
+              <span class="visual-window__title">Workspace Preview</span>
+            </div>
+
+            <div class="visual-window__body">
+              <div class="visual-lead">
+                <span class="visual-lead__badge">Quick Start</span>
+                <strong>首页选功能，工作页做处理</strong>
+                <p>入口更清楚，页面更聚焦。</p>
+              </div>
+
+              <div class="visual-flow">
+                <div class="flow-chip">选择功能</div>
+                <div class="flow-line" />
+                <div class="flow-chip">拖入文件</div>
+                <div class="flow-line" />
+                <div class="flow-chip">导出结果</div>
+              </div>
+
+              <div class="visual-tools">
+                <span
+                  v-for="tool in tools"
+                  :key="tool.id"
+                  class="visual-tool"
+                  :style="{ '--tool-accent': tool.accent }"
+                >
+                  {{ tool.navLabel }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="tool-grid">
+      <section id="tool-grid" class="tool-grid">
         <RouterLink
           v-for="tool in tools"
           :key="tool.id"
@@ -62,6 +106,7 @@ import { TOOL_CONFIGS } from '@/views/tool-config'
 
 const tools = TOOL_CONFIGS
 const toolCount = computed(() => tools.length)
+const primaryToolPath = computed(() => tools[0]?.path ?? '/')
 </script>
 
 <style scoped lang="scss">
@@ -82,37 +127,48 @@ const toolCount = computed(() => tools.length)
 
 .hero-card {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: 18px;
-  padding: 28px;
-  border-radius: 30px;
+  padding: 30px;
+  border-radius: 32px;
   background:
-    radial-gradient(circle at top left, rgba(64, 158, 255, 0.18), transparent 38%),
-    radial-gradient(circle at right bottom, rgba(103, 194, 58, 0.12), transparent 28%),
-    rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+    radial-gradient(circle at top left, rgba(64, 158, 255, 0.16), transparent 34%),
+    radial-gradient(circle at right bottom, rgba(103, 194, 58, 0.1), transparent 24%),
+    rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.92);
   box-shadow: 0 26px 70px rgba(15, 23, 42, 0.14);
   backdrop-filter: blur(18px);
 }
 
 .hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   text-align: left;
 
   h1 {
-    margin: 12px 0 10px;
-    font-size: clamp(32px, 5vw, 50px);
-    line-height: 1.02;
+    margin: 14px 0 12px;
+    max-width: 620px;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.98;
     color: #0f172a;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.05em;
   }
 
   p {
     margin: 0;
-    max-width: 680px;
+    max-width: 520px;
     color: #526072;
     line-height: 1.8;
     font-size: 15px;
   }
+}
+
+.hero-copy__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .hero-badge {
@@ -129,32 +185,214 @@ const toolCount = computed(() => tools.length)
   text-transform: uppercase;
 }
 
-.hero-metrics {
-  display: grid;
-  gap: 12px;
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.metric-card {
-  padding: 18px;
-  border-radius: 20px;
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.hero-button {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-button:hover {
+  transform: translateY(-1px);
+}
+
+.hero-button--primary {
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(29, 78, 216, 0.22);
+}
+
+.hero-button--ghost {
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(218, 228, 240, 0.9);
+  color: #334155;
+}
+
+.hero-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+
+  span {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    color: #526072;
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+.hero-visual {
+  display: flex;
+  align-items: center;
+}
+
+.visual-window {
+  width: 100%;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(250, 252, 255, 0.96) 0%, rgba(244, 248, 252, 0.98) 100%);
+  border: 1px solid rgba(221, 229, 238, 0.96);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 36px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.visual-window__bar {
+  height: 50px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.visual-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.visual-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.visual-dot--red {
+  background: #fb7185;
+}
+
+.visual-dot--yellow {
+  background: #fbbf24;
+}
+
+.visual-dot--green {
+  background: #34d399;
+}
+
+.visual-window__title {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.visual-window__body {
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.visual-lead {
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.78) 0%, rgba(255, 255, 255, 0.88) 100%);
+  border: 1px solid rgba(191, 219, 254, 0.92);
   text-align: left;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   strong {
     display: block;
+    margin-top: 10px;
     color: #0f172a;
-    font-size: 24px;
+    font-size: 22px;
     letter-spacing: -0.03em;
   }
 
-  span {
-    display: block;
-    margin-top: 6px;
+  p {
+    margin: 8px 0 0;
     color: #64748b;
     font-size: 13px;
+    line-height: 1.7;
   }
+}
+
+.visual-lead__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.visual-flow {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.flow-chip {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.96);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.flow-line {
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.3) 0%, rgba(59, 130, 246, 0.45) 100%);
+}
+
+.visual-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.visual-tool {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tool-accent) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--tool-accent) 18%, white);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .tool-grid {
@@ -281,6 +519,26 @@ const toolCount = computed(() => tools.length)
 
   .hero-card {
     padding: 22px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .hero-button {
+    width: 100%;
+  }
+
+  .hero-notes {
+    flex-direction: column;
+  }
+
+  .visual-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-line {
+    display: none;
   }
 
   .tool-grid {
