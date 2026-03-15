@@ -3,17 +3,17 @@
     <div class="home-panel">
       <section class="hero-card">
         <div class="hero-copy">
-          <div class="hero-copy__top">
+          <div class="hero-copy__top" v-if="false">
             <span class="hero-badge">PDF Squeezer</span>
             <span class="hero-kicker">Local-first</span>
           </div>
 
-          <h1>你的本地 PDF 工作台</h1>
+          <h1>PDF Squeezer</h1>
           <p>
-            压缩、合并、拆分、格式转换和水印，全都从这里进入。选一个任务，直接进对应页面开始处理。
+            集中处理你的 PDF 文件，选择需要的功能，快速开始操作。
           </p>
-<!-- 
-          <div class="hero-actions">
+
+          <!-- <div class="hero-actions">
             <RouterLink :to="primaryToolPath" class="hero-button hero-button--primary">
               开始处理
             </RouterLink>
@@ -22,7 +22,7 @@
             </a>
           </div> -->
 
-          <div class="hero-notes">
+          <div class="hero-notes" v-if="false">
             <span>{{ toolCount }} 个功能</span>
             <span>本地处理</span>
             <span>统一输出目录</span>
@@ -37,13 +37,13 @@
                 <span class="visual-dot visual-dot--yellow" />
                 <span class="visual-dot visual-dot--green" />
               </div>
-              <span class="visual-window__title">Workspace Preview</span>
+              <!-- <span class="visual-window__title">Workspace Preview</span> -->
             </div>
 
             <div class="visual-window__body">
               <div class="visual-lead">
                 <span class="visual-lead__badge">Quick Start</span>
-                <strong>首页选功能，工作页做处理</strong>
+                <strong>一站式 PDF 工具箱</strong>
                 <p>入口更清楚，页面更聚焦。</p>
               </div>
 

@@ -19,15 +19,15 @@ const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'pr
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1000,
-    height: 800,
+    width: 1270,
+    height: 900,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(import.meta.dirname, 'preload.ts'),
     },
     icon: path.join(import.meta.dirname, 'icon.ico'),
-    // resizable: false,
+    resizable: false,
   })
 
   win.setMenu(null)

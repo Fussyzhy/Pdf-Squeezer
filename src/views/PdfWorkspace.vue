@@ -9,7 +9,9 @@
       <header class="workspace-header">
         <div class="header-copy">
           <button class="back-button" type="button" @click="handleGoHome">
-            返回首页
+            <el-icon>
+              <arrow-left/>
+            </el-icon>
           </button>
 
           <span class="header-kicker">{{ currentTool.badge }}</span>
@@ -569,9 +571,9 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #fdfefe 100%);
-  border: 1px solid rgba(226, 232, 240, 0.88);
+  // border-radius: 22px;
+  // background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #fdfefe 100%);
+  // border: 1px solid rgba(226, 232, 240, 0.88);
   overflow: auto;
   height: 100%;
   margin-right: 60px;
@@ -606,6 +608,7 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
 
 .back-button {
   margin-bottom: 14px;
+  margin-right: 12px;
   height: 36px;
   padding: 0 14px;
   border-radius: 999px;
