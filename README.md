@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./electron/icon.png" width="88" alt="PDF Squeezer Logo" />
   <h1>PDF Squeezer</h1>
-  <p>一个本地优先的桌面端 PDF 工作台，把压缩、合并、拆分、格式转换和水印放进同一套顺手的工作流。</p>
+  <p>一个本地优先、专注高效 PDF 工作流的桌面应用</p>
   <p>
     <strong>简体中文</strong>
     <span>&nbsp;|&nbsp;</span>

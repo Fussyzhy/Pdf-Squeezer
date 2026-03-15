@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./electron/icon.png" width="88" alt="PDF Squeezer Logo" />
   <h1>PDF Squeezer</h1>
-  <p>A local-first desktop PDF workspace that brings compression, merge, split, conversion and watermarking into one consistent flow.</p>
+  <p>A local-first desktop app for streamlined PDF workflows.</p>
   <p>
     <a href="./README.md">简体中文</a>
     <span>&nbsp;|&nbsp;</span>
