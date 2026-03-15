@@ -28,6 +28,8 @@ function createWindow() {
     },
     icon: path.join(import.meta.dirname, 'icon.ico'),
     resizable: false,
+    frame: false,
+    titleBarStyle: "hidden",
   })
 
   win.setMenu(null)
@@ -167,3 +169,11 @@ ipcMain.handle('watermark-pdf-buffer', async (_event: unknown, files: RendererPd
     return { success: false, error: err.message }
   }
 })
+
+ipcMain.on("window-minimize", () => {
+  BrowserWindow.getFocusedWindow().minimize();
+});
+
+ipcMain.on("window-close", () => {
+  BrowserWindow.getFocusedWindow().close();
+});

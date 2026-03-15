@@ -55,7 +55,7 @@
                 <div class="flow-chip">导出结果</div>
               </div>
 
-              <div class="visual-tools">
+              <div class="visual-tools" v-if="false">
                 <span
                   v-for="tool in tools"
                   :key="tool.id"

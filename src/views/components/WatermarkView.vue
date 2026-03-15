@@ -22,87 +22,6 @@
       <span id="inputPath">点击或拖拽 PDF 文件到这里上传</span>
     </div>
 
-    <div class="option-grid">
-      <section class="form-card">
-        <div class="card-header">
-          <span class="card-title">水印内容</span>
-          <span class="card-tip">先选择水印类型，再配置内容</span>
-        </div>
-
-        <el-radio-group v-model="sourceType" class="source-type">
-          <el-radio-button label="text">文字水印</el-radio-button>
-          <el-radio-button label="image">图片水印</el-radio-button>
-        </el-radio-group>
-
-        <div v-if="sourceType === 'text'" class="text-source">
-          <el-input
-            v-model="textValue"
-            type="textarea"
-            :rows="3"
-            placeholder="输入水印文字，可换行"
-            maxlength="120"
-            show-word-limit
-          />
-          <div class="text-controls">
-            <div class="control-item">
-              <span class="control-label">文字颜色</span>
-              <input v-model="textColor" class="color-input" type="color" />
-            </div>
-            <div class="control-item">
-              <span class="control-label">字号</span>
-              <el-input-number v-model="fontSize" :min="18" :max="120" controls-position="right" />
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="image-source">
-          <div class="image-meta">
-            <strong>{{ imageName || '尚未选择水印图片' }}</strong>
-            <span>支持 PNG / JPEG</span>
-          </div>
-          <button type="button" class="secondary-button" @click="handleSelectImage">
-            选择图片
-          </button>
-          <input ref="imageInput" type="file" accept="image/png,image/jpeg" @change="handleImageChange" hidden />
-        </div>
-      </section>
-
-      <section class="form-card">
-        <div class="card-header">
-          <span class="card-title">水印样式</span>
-          <span class="card-tip">透明度与角度会作用于全部页面</span>
-        </div>
-
-        <div class="style-row">
-          <span class="control-label">布局方式</span>
-          <el-radio-group v-model="placement" class="placement-group">
-            <el-radio-button label="center">居中</el-radio-button>
-            <el-radio-button label="tile">铺满</el-radio-button>
-          </el-radio-group>
-        </div>
-
-        <div class="style-row">
-          <span class="control-label">透明度 {{ Math.round(opacity * 100) }}%</span>
-          <el-slider v-model="opacity" :min="0.05" :max="0.6" :step="0.01" />
-        </div>
-
-        <div class="style-row">
-          <span class="control-label">大小 {{ Math.round(size * 100) }}%</span>
-          <el-slider v-model="size" :min="0.15" :max="0.8" :step="0.01" />
-        </div>
-
-        <div class="style-row">
-          <span class="control-label">旋转角度</span>
-          <el-input-number v-model="rotation" :min="-180" :max="180" controls-position="right" />
-        </div>
-
-        <div v-if="placement === 'tile'" class="style-row">
-          <span class="control-label">铺满间距</span>
-          <el-slider v-model="tileGap" :min="0" :max="160" :step="4" />
-        </div>
-      </section>
-    </div>
-
     <div class="preview-grid">
       <section class="preview-card">
         <div class="card-header">
@@ -122,11 +41,90 @@
 
       <section class="preview-side-card">
         <div class="card-header">
-          <span class="card-title">预览说明</span>
-          <span class="card-tip">预览会尽量贴近最终 PDF 效果</span>
+          <span class="card-title">预览说明与设置</span>
+          <span class="card-tip">右侧直接调整参数，左侧实时查看大致效果</span>
         </div>
 
-        <div class="preview-chip-list">
+        <section class="control-section">
+          <div class="section-header">
+            <span class="section-title">水印内容</span>
+            <span class="section-tip">先选择水印类型，再配置内容</span>
+          </div>
+
+          <el-radio-group v-model="sourceType" class="source-type">
+            <el-radio-button label="text">文字水印</el-radio-button>
+            <el-radio-button label="image">图片水印</el-radio-button>
+          </el-radio-group>
+
+          <div v-if="sourceType === 'text'" class="text-source">
+            <el-input
+              v-model="textValue"
+              type="textarea"
+              :rows="3"
+              placeholder="输入水印文字，可换行"
+              maxlength="120"
+              show-word-limit
+            />
+            <div class="text-controls">
+              <div class="control-item">
+                <span class="control-label">文字颜色</span>
+                <input v-model="textColor" class="color-input" type="color" />
+              </div>
+              <div class="control-item">
+                <span class="control-label">字号</span>
+                <el-input-number v-model="fontSize" :min="18" :max="120" controls-position="right" />
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="image-source">
+            <div class="image-meta">
+              <strong>{{ imageName || '尚未选择水印图片' }}</strong>
+              <span>支持 PNG / JPEG</span>
+            </div>
+            <button type="button" class="secondary-button" @click="handleSelectImage">
+              选择图片
+            </button>
+            <input ref="imageInput" type="file" accept="image/png,image/jpeg" @change="handleImageChange" hidden />
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-header">
+            <span class="section-title">水印样式</span>
+            <span class="section-tip">透明度与角度会作用于全部页面</span>
+          </div>
+
+          <div class="style-row">
+            <span class="control-label">布局方式</span>
+            <el-radio-group v-model="placement" class="placement-group">
+              <el-radio-button label="center">居中</el-radio-button>
+              <el-radio-button label="tile">铺满</el-radio-button>
+            </el-radio-group>
+          </div>
+
+          <div class="style-row">
+            <span class="control-label">透明度 {{ Math.round(opacity * 100) }}%</span>
+            <el-slider v-model="opacity" :min="0.05" :max="0.6" :step="0.01" />
+          </div>
+
+          <div class="style-row">
+            <span class="control-label">大小 {{ Math.round(size * 100) }}%</span>
+            <el-slider v-model="size" :min="0.15" :max="0.8" :step="0.01" />
+          </div>
+
+          <div class="style-row">
+            <span class="control-label">旋转角度</span>
+            <el-input-number v-model="rotation" :min="-180" :max="180" controls-position="right" />
+          </div>
+
+          <div v-if="placement === 'tile'" class="style-row">
+            <span class="control-label">铺满间距</span>
+            <el-slider v-model="tileGap" :min="0" :max="160" :step="4" />
+          </div>
+        </section>
+
+        <!-- <div class="preview-chip-list">
           <span>{{ sourceType === 'text' ? '文字水印' : '图片水印' }}</span>
           <span>{{ placement === 'center' ? '居中布局' : '铺满布局' }}</span>
           <span>透明度 {{ Math.round(opacity * 100) }}%</span>
@@ -137,10 +135,10 @@
 
         <div class="preview-note">
           <strong>当前模拟会体现这些变化</strong>
-          <p>透明度、旋转角度、布局方式、铺满密度和水印内容都会实时反映在右侧预览中，方便你在真正输出前先看整体观感。</p>
-        </div>
+          <p>透明度、旋转角度、布局方式、铺满密度和水印内容都会实时反映在左侧预览中，方便你在真正输出前先看整体观感。</p>
+        </div> -->
 
-        <div v-if="sourceType === 'text'" class="preview-meta-list">
+        <!-- <div v-if="sourceType === 'text'" class="preview-meta-list">
           <div class="meta-row">
             <span>文字颜色</span>
             <strong>{{ textColor.toUpperCase() }}</strong>
@@ -168,7 +166,7 @@
             <span>原始尺寸</span>
             <strong>{{ imagePayload ? `${imagePayload.width} × ${imagePayload.height}` : '--' }}</strong>
           </div>
-        </div>
+        </div> -->
       </section>
     </div>
 
@@ -845,21 +843,12 @@ const handleWatermark = async () => {
   }
 }
 
-.option-grid,
 .preview-grid {
   display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
   gap: 14px;
 }
 
-.option-grid {
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-}
-
-.preview-grid {
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-}
-
-.form-card,
 .preview-card,
 .preview-side-card {
   padding: 16px;
@@ -877,38 +866,57 @@ const handleWatermark = async () => {
   background: linear-gradient(180deg, #fffafb 0%, #ffffff 100%);
 }
 
-.card-header {
+.card-header,
+.section-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
 }
 
-.card-title {
+.card-title,
+.section-title {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
 }
 
-.card-tip {
+.card-tip,
+.section-tip {
   font-size: 12px;
   color: #909399;
 }
 
-.source-type {
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid #f3e3e6;
+}
+
+.source-type,
+.placement-group {
   width: 100%;
 }
 
+.text-source,
 .text-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-.control-item {
+.text-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.control-item,
+.style-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .control-label {
@@ -962,16 +970,6 @@ const handleWatermark = async () => {
 
 .secondary-button:hover {
   background: #ffe9ee;
-}
-
-.style-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.placement-group {
-  width: 100%;
 }
 
 .preview-stage {
@@ -1122,14 +1120,13 @@ const handleWatermark = async () => {
   width: 100%;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .preview-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 720px) {
-  .option-grid,
   .text-controls {
     grid-template-columns: 1fr;
   }
@@ -1137,7 +1134,9 @@ const handleWatermark = async () => {
   .image-source,
   .action-bar,
   .preview-footer,
-  .meta-row {
+  .meta-row,
+  .card-header,
+  .section-header {
     flex-direction: column;
     align-items: stretch;
   }
