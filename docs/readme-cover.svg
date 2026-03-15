@@ -41,20 +41,22 @@
   <rect x="278" y="230" width="22" height="4" rx="2" fill="#62C555"/>
 
   <text x="384" y="216" fill="#0F172A" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="56" font-weight="700">PDF Squeezer</text>
-  <text x="384" y="266" fill="#526071" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="19" font-weight="500">Desktop PDF workspace for compressing, merging, splitting and converting files.</text>
+  <text x="384" y="264" fill="#526071" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="500">Desktop PDF workspace for compressing, merging, splitting, converting and watermarking.</text>
 
   <g>
-    <rect x="384" y="308" width="122" height="38" rx="19" fill="#EEF5FF"/>
-    <text x="413" y="333" fill="#2E66D1" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Compress</text>
-    <rect x="520" y="308" width="104" height="38" rx="19" fill="#FFF5E8"/>
-    <text x="552" y="333" fill="#C47A16" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Merge</text>
-    <rect x="638" y="308" width="88" height="38" rx="19" fill="#ECFBF8"/>
-    <text x="667" y="333" fill="#0E8C7E" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Split</text>
-    <rect x="740" y="308" width="116" height="38" rx="19" fill="#EEF8EE"/>
-    <text x="768" y="333" fill="#3C9637" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Convert</text>
+    <rect x="354" y="308" width="122" height="38" rx="19" fill="#EEF5FF"/>
+    <text x="383" y="333" fill="#2E66D1" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Compress</text>
+    <rect x="490" y="308" width="104" height="38" rx="19" fill="#FFF5E8"/>
+    <text x="522" y="333" fill="#C47A16" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Merge</text>
+    <rect x="608" y="308" width="88" height="38" rx="19" fill="#ECFBF8"/>
+    <text x="637" y="333" fill="#0E8C7E" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Split</text>
+    <rect x="710" y="308" width="116" height="38" rx="19" fill="#EEF8EE"/>
+    <text x="738" y="333" fill="#3C9637" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Convert</text>
+    <rect x="840" y="308" width="150" height="38" rx="19" fill="#FFF1F3"/>
+    <text x="870" y="333" fill="#E11D48" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">Watermark</text>
   </g>
 
-  <text x="384" y="390" fill="#607084" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="500">Built with Electron, Vue 3, TypeScript and Ghostscript.</text>
+  <text x="384" y="390" fill="#607084" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="500">Built with Electron, Vue 3, TypeScript, Ghostscript and pdf-lib.</text>
 
   <rect x="780" y="158" width="432" height="92" rx="22" fill="url(#panel)"/>
   <rect x="780.75" y="158.75" width="430.5" height="90.5" rx="21.25" stroke="#E5EDF8" stroke-width="1.5"/>
@@ -72,11 +74,11 @@
 
   <rect x="812" y="382" width="360" height="92" rx="22" fill="url(#panel)"/>
   <rect x="812.75" y="382.75" width="358.5" height="90.5" rx="21.25" stroke="#E5EDF8" stroke-width="1.5"/>
-  <rect x="840" y="412" width="62" height="40" rx="14" fill="#EEF8EE"/>
-  <text x="855" y="437" fill="#3C9637" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="700">PNG</text>
-  <text x="918" y="420" fill="#152235" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="700">PDF to image</text>
-  <text x="918" y="447" fill="#627186" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="15" font-weight="500">PNG / JPEG at 150, 200 or 300 DPI</text>
+  <rect x="840" y="412" width="78" height="40" rx="14" fill="#FFF1F3"/>
+  <text x="853" y="437" fill="#E11D48" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="700">Preview</text>
+  <text x="934" y="420" fill="#152235" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="20" font-weight="700">Watermark preview</text>
+  <text x="934" y="447" fill="#627186" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="15" font-weight="500">Text or image watermark with center / tile layout</text>
 
   <rect x="226" y="510" width="858" height="52" rx="18" fill="white" fill-opacity="0.78"/>
-  <text x="254" y="543" fill="#4D5E73" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="500">Bundled Ghostscript runtime · Drag-and-drop upload · Draggable file drawer · Safe output naming</text>
+  <text x="254" y="543" fill="#4D5E73" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="500">Bundled Ghostscript / Watermark preview / Draggable file drawer / Safe output naming</text>
 </svg>

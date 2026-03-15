@@ -105,45 +105,47 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-left: 14px;
   -webkit-app-region: no-drag;
-}
-
-.window-control {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 0;
-  cursor: pointer;
-  transition: transform 0.18s ease;
-
-  .el-icon {
-    font-size: 10px;
-    color: #272727;
-    padding-top: 1px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
 
   &:hover {
-    transform: scale(1.06);
-
-    .el-icon {
-      opacity: 1;
+    .window-control {
+      transform: scale(1.06);
+  
+      .el-icon {
+        opacity: 1;
+      }
     }
   }
-
-  &.close {
-    background-color: #fb7185;
-  }
-
-  &.minimize {
-    background-color: #fbbf24;
+  
+  .window-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 0;
+    cursor: pointer;
+    transition: transform 0.18s ease;
+  
+    .el-icon {
+      font-size: 10px;
+      color: #272727;
+      padding-top: 1px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+  
+    &.close {
+      background-color: #fb7185;
+    }
+  
+    &.minimize {
+      background-color: #fbbf24;
+    }
   }
 }
+
 
 .app-content {
   width: 100%;
