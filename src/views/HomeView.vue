@@ -112,7 +112,6 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
 <style scoped lang="scss">
 .home-shell {
   width: min(1120px, 100%);
-  min-height: calc(100vh - 48px);
   display: flex;
   align-items: center;
   justify-content: center;

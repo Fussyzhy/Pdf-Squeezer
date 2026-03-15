@@ -20,7 +20,7 @@ const compressionLevels: CompressionLevel[] = ['screen', 'ebook', 'printer', 'pr
 function createWindow() {
   const win = new BrowserWindow({
     width: 1270,
-    height: 900,
+    height: 930,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -170,10 +170,10 @@ ipcMain.handle('watermark-pdf-buffer', async (_event: unknown, files: RendererPd
   }
 })
 
-ipcMain.on("window-minimize", () => {
+ipcMain.handle("window-minimize", () => {
   BrowserWindow.getFocusedWindow().minimize();
 });
 
-ipcMain.on("window-close", () => {
+ipcMain.handle("window-close", () => {
   BrowserWindow.getFocusedWindow().close();
 });
