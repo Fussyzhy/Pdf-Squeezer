@@ -1,17 +1,24 @@
 ﻿<template>
-  <div class="window-controls" aria-label="Window controls">
-    <button type="button" class="window-control close" aria-label="关闭" @click="handleClose">
-      <el-icon>
-        <Close/>
-      </el-icon>
-    </button>
-    <button type="button" class="window-control minimize" aria-label="最小化" @click="handleMiniMize">
-      <el-icon>
-        <Minus/>
-      </el-icon>
-    </button>
-  </div>
   <div class="app-shell">
+    <header class="window-titlebar" aria-label="Window title bar">
+      <div class="window-drag-region">
+        <span class="window-title">PDF Squeezer</span>
+      </div>
+
+      <div class="window-controls" aria-label="Window controls">
+        <button type="button" class="window-control minimize" aria-label="最小化" @click="handleMiniMize">
+          <el-icon>
+            <Minus/>
+          </el-icon>
+        </button>
+        <button type="button" class="window-control close" aria-label="关闭" @click="handleClose">
+          <el-icon>
+            <Close/>
+          </el-icon>
+        </button>
+      </div>
+    </header>
+
     <main class="app-content">
       <router-view />
     </main>
@@ -52,52 +59,78 @@ body {
 
 #app {
   width: 100%;
-  min-height: calc(100vh - 48px);
+  min-height: 100vh;
 }
 
 .app-shell {
   width: 100%;
-  min-height: inherit;
-  position: relative;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
-  padding: 24px;
+  flex-direction: column;
 }
 
-.app-content {
-  width: 100%;
+.window-titlebar {
+  height: 42px;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.78);
+  backdrop-filter: blur(14px);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.window-drag-region {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.window-title {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .window-controls {
-  height: 30px;
-  background-color: #fff;
   display: flex;
   align-items: center;
-  padding: 0px 15px;
   gap: 10px;
+  padding-left: 14px;
+  -webkit-app-region: no-drag;
 }
 
 .window-control {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  border: 0px;
+  border: 0;
   cursor: pointer;
+  transition: transform 0.18s ease;
 
   .el-icon {
     font-size: 10px;
     color: #272727;
-    padding-top: 2px;
+    padding-top: 1px;
     opacity: 0;
-    transition: all 0.3s ease;
+    transition: opacity 0.2s ease;
   }
 
   &:hover {
+    transform: scale(1.06);
+
     .el-icon {
       opacity: 1;
     }
@@ -110,5 +143,13 @@ body {
   &.minimize {
     background-color: #fbbf24;
   }
+}
+
+.app-content {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
 }
 </style>

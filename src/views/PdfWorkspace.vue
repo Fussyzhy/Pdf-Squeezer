@@ -545,7 +545,7 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
 <style scoped lang="scss">
 .workspace-shell {
   width: min(980px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px);
+  max-height: calc(100vh - 100px);
   padding: 18px;
   display: flex;
   border-radius: 28px;
