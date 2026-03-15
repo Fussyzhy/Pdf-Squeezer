@@ -50,6 +50,8 @@ declare global {
       getPDFPageCount: (inputFile: PdfBinaryPayload) => Promise<{ success: boolean; pageCount?: number; error?: string }>
       splitPDFBuffer: (inputFile: PdfBinaryPayload, outputFolder: string, options: SplitOptions) => Promise<{ success: boolean; error?: string; outputFiles?: string[]; pageCount?: number }>
       watermarkPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, options: WatermarkSubmitOptions) => Promise<{ success: boolean; error?: string; outputFiles?: string[] }>
+      windowMiniSize: () => void
+      windowClose: () => void
     }
   }
 }

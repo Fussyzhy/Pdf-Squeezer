@@ -9,4 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPDFPageCount: (inputFile) => ipcRenderer.invoke('get-pdf-page-count', inputFile),
   splitPDFBuffer: (inputFile, outputFolder, options) => ipcRenderer.invoke('split-pdf-buffer', inputFile, outputFolder, options),
   watermarkPDFBuffer: (inputFiles, outputFolder, options) => ipcRenderer.invoke('watermark-pdf-buffer', inputFiles, outputFolder, options),
+  windowMiniSize: () => ipcRenderer.invoke('window-minimize'),
+  windowClose: () => ipcRenderer.invoke('window-close')
 })

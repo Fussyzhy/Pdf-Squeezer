@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./electron/icon.png" width="88" alt="PDF Squeezer Logo" />
   <h1>PDF Squeezer</h1>
-  <p>A desktop PDF workspace that brings compression, merge, split and format conversion into one focused UI.</p>
+  <p>A local-first desktop app for streamlined PDF workflows.</p>
   <p>
     <a href="./README.md">简体中文</a>
     <span>&nbsp;|&nbsp;</span>
@@ -13,6 +13,22 @@
     <img src="https://img.shields.io/badge/build-electron--builder-7C3AED?style=for-the-badge" alt="Build" />
     <img src="https://img.shields.io/badge/license-MIT-16A34A?style=for-the-badge" alt="License" />
   </p>
+  <p>
+    <img src="https://img.shields.io/badge/Electron-40.x-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
+    <img src="https://img.shields.io/badge/Vue-3.5-42B883?style=flat-square&logo=vuedotjs&logoColor=white" alt="Vue 3" />
+    <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Vite-7.x-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+    <img src="https://img.shields.io/badge/Element%20Plus-UI-409EFF?style=flat-square" alt="Element Plus" />
+    <img src="https://img.shields.io/badge/Ghostscript-Bundled-0F4C81?style=flat-square" alt="Ghostscript" />
+    <img src="https://img.shields.io/badge/pdf--lib-Watermark%20Engine-F43F5E?style=flat-square" alt="pdf-lib" />
+    <img src="https://img.shields.io/badge/Yarn-Preferred-2C8EBB?style=flat-square&logo=yarn&logoColor=white" alt="Yarn" />
+  </p>
+  <p>
+    <img src="https://img.shields.io/badge/Local--first-Desktop-111827?style=flat-square" alt="Local-first" />
+    <img src="https://img.shields.io/badge/Watermark-Preview-E11D48?style=flat-square" alt="Watermark Preview" />
+    <img src="https://img.shields.io/badge/Frameless-Window-F59E0B?style=flat-square" alt="Frameless Window" />
+    <img src="https://img.shields.io/badge/asar-Ready-0F766E?style=flat-square" alt="asar Ready" />
+  </p>
 </div>
 
 <p align="center">
@@ -22,7 +38,9 @@
 <p align="center">
   <a href="#overview-en">Overview</a>
   <span>&nbsp;|&nbsp;</span>
-  <a href="#features-en">Features</a>
+  <a href="#features-en">Feature Matrix</a>
+  <span>&nbsp;|&nbsp;</span>
+  <a href="#workflow-en">Workflow</a>
   <span>&nbsp;|&nbsp;</span>
   <a href="#quick-start-en">Quick Start</a>
   <span>&nbsp;|&nbsp;</span>
@@ -35,94 +53,62 @@
 
 ## Overview
 
-> PDF Squeezer is a local-first desktop utility focused on practical PDF workflows.
->
-> It combines four common jobs into one workspace: PDF compression, PDF merge, PDF split and PDF-to-image conversion, powered by Electron, Vue 3 and Ghostscript.
+> PDF Squeezer is a Windows-focused local desktop utility for practical PDF work. The goal is simple: keep the common PDF jobs inside one app instead of spreading them across websites, scripts and separate tools.
 
-### Best for
+The current build ships with 5 core tools:
 
-- Office users who need to shrink PDF files before email delivery, uploads or archiving.
-- Users who want to merge multiple PDFs and control the final order with drag-and-drop.
-- Users who need both split modes: every N pages, or custom extraction such as `1-3,5-6`.
-- Teams or individuals who want to export PDF pages as PNG / JPEG images locally and offline.
+- `compress`: PDF compression with 5 Ghostscript presets.
+- `merge`: merge multiple PDFs with drag-and-drop ordering.
+- `split`: split evenly by page count or extract custom ranges such as `1-3,5-6`.
+- `convert`: export PDF pages to `PNG` / `JPEG` with 150 / 200 / 300 DPI options.
+- `watermark`: batch-apply text or image watermarks with opacity, scale, rotation and layout controls.
 
-<a id="stack-en"></a>
+The UI structure is now centered around three stable layers:
 
-## Tech Stack
-
-<p>
-  <img src="https://img.shields.io/badge/Electron-40.x-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
-  <img src="https://img.shields.io/badge/Vue-3.5-42B883?style=flat-square&logo=vuedotjs&logoColor=white" alt="Vue 3" />
-  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-7.x-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/Element%20Plus-UI-409EFF?style=flat-square&logo=element&logoColor=white" alt="Element Plus" />
-  <img src="https://img.shields.io/badge/Ghostscript-PDF%20Engine-0F4C81?style=flat-square" alt="Ghostscript" />
-  <img src="https://img.shields.io/badge/Sass-Styling-CC6699?style=flat-square&logo=sass&logoColor=white" alt="Sass" />
-  <img src="https://img.shields.io/badge/Yarn-1.x-2C8EBB?style=flat-square&logo=yarn&logoColor=white" alt="Yarn" />
-</p>
+- `src/views/HomeView.vue` provides the home screen with 5 tool cards.
+- `src/views/PdfWorkspace.vue` hosts the shared workspace, output settings and file drawer.
+- `src/App.vue` provides the custom title bar for the frameless window, including minimize and close buttons.
 
 <a id="features-en"></a>
 
-## Features
+## Feature Matrix
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>Compression</h3>
-      <p>Includes five Ghostscript presets: <code>screen</code>, <code>ebook</code>, <code>printer</code>, <code>prepress</code> and <code>default</code>.</p>
-      <p>Batch upload and batch processing are supported, and original files stay untouched.</p>
-    </td>
-    <td width="50%" valign="top">
-      <h3>Merge</h3>
-      <p>Add multiple PDFs and merge them in the exact order shown in the file drawer.</p>
-      <p>The drawer supports drag sorting, removing items and clearing the queue.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>Split</h3>
-      <p>The app reads total page count first, then offers two split modes.</p>
-      <p><strong>Interval split:</strong> create one file every N pages.</p>
-      <p><strong>Custom extract:</strong> enter <code>1-3,5-6</code> to extract pages 1, 2, 3, 5 and 6 into a new PDF.</p>
-    </td>
-    <td width="50%" valign="top">
-      <h3>Convert</h3>
-      <p>Currently supports PDF-to-image conversion with <code>PNG</code> and <code>JPEG</code> output.</p>
-      <p>Every source PDF gets its own output folder, with 150 / 200 / 300 DPI options.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>Unified File Drawer</h3>
-      <p>The right-side drawer shows file count, total size and current ordering for the active tool.</p>
-      <p>It can be collapsed, reordered and managed without leaving the workspace.</p>
-    </td>
-    <td width="50%" valign="top">
-      <h3>Safe Output Flow</h3>
-      <p>All results are written to the output directory selected by the user and remembered locally.</p>
-      <p>Temporary files are cleaned up after processing and source PDFs are never overwritten directly.</p>
-    </td>
-  </tr>
-</table>
+| Tool | Current capabilities | Notes |
+| --- | --- | --- |
+| Compression | `screen`, `ebook`, `printer`, `prepress`, `default` | Batch compression, source files preserved, timestamped outputs |
+| Merge | Multi-PDF merge with drag sorting | Uses the right-side drawer order to produce one merged result |
+| Split | Interval split plus custom page extraction | Reads total page count first, then runs even split or `1-3,5-6` extraction |
+| Convert | PDF to image | Supports `PNG` / `JPEG`, one output folder per source PDF |
+| Watermark | Text/image watermark with live mock preview | Adjustable opacity, size, rotation, tile gap and center/tile layout |
 
-## Architecture Flow
+### Shared UX
+
+- Unified file drawer: all tools reuse the same right-side list with collapse, reorder, remove and clear actions.
+- Persistent output folder: the selected output directory is remembered locally.
+- Local processing: Ghostscript powers compression, split and conversion; `pdf-lib` handles watermark rendering.
+- Custom window chrome: the Electron window uses `frame: false` and `titleBarStyle: "hidden"` with a custom draggable title bar.
+
+<a id="workflow-en"></a>
+
+## Workflow
 
 ```mermaid
 flowchart LR
-    UI["Vue 3 Workspace"] --> Bridge["preload.ts / contextBridge"]
-    Bridge --> IPC["ipcMain handlers"]
-    IPC --> Engine["pdf-editor / pdf-split / pdf-convert"]
-    Engine --> GS["Ghostscript runtime"]
-    Engine --> Output["Timestamped output files"]
+    Home["HomeView / 5 tool entries"] --> Workspace["PdfWorkspace / shared workspace"]
+    Workspace --> Bridge["preload.ts / contextBridge"]
+    Bridge --> IPC["electron/main.ts / ipcMain handlers"]
+    IPC --> GS["Ghostscript / pdf-editor / pdf-split / pdf-convert"]
+    IPC --> Watermark["pdf-lib / pdf-watermark"]
+    GS --> Output["Output folder"]
+    Watermark --> Output
 ```
 
-## Highlights
+### Current UI highlights
 
-- Single-workspace design for four PDF tasks in one window.
-- Drag-aware file drawer that stays in sync with the active tool.
-- Auto page count detection before split, reducing invalid user input.
-- Bundled Ghostscript runtime with support for Electron packaging using `asar: true`.
-- Fully local processing, suitable for offline and privacy-sensitive workflows.
+- Users start on the home screen, choose a tool, then move into a focused workspace.
+- Split mode reads total page count before execution, which cuts down invalid input.
+- Watermark mode includes a simulated preview panel so the user can inspect the approximate result before writing the final PDF.
+- Output settings are shared across all tools, so the user configures the folder once and keeps moving.
 
 <a id="quick-start-en"></a>
 
@@ -132,7 +118,7 @@ flowchart LR
 
 - Windows 10 / 11 x64
 - Node.js `^20.19.0 || >=22.12.0`
-- Yarn 1.x or Yarn via Corepack
+- Yarn 1.x, or Yarn via Corepack
 
 ### Install
 
@@ -149,7 +135,7 @@ yarn install
 yarn dev
 ```
 
-### Build for Production
+### Build the Installer
 
 ```bash
 yarn build
@@ -159,47 +145,57 @@ yarn build
 
 | Command | Description |
 | --- | --- |
-| `yarn dev` | Start Vite + Electron in development mode |
+| `yarn dev` | Start Vite and Electron in development |
+| `yarn vue:dev` | Start the frontend dev server only |
 | `yarn vue:build` | Build frontend assets only |
-| `yarn build` | Build frontend and package the Electron app |
+| `yarn build` | Build frontend assets, then run `electron-builder` |
 | `yarn vue-tsc --noEmit -p tsconfig.app.json` | Run frontend type checks |
 
 ## Usage
 
-1. Open the app and choose an output directory from the top-right settings panel.
-2. Pick the tool you need: compress, merge, split or convert.
-3. Click to upload or drag PDF files into the workspace.
-4. For merge jobs, reorder files in the right drawer before starting.
-5. Configure the needed options and run the task. Results are written into the selected output directory.
+1. Start the app and choose an output directory from the top-right settings panel.
+2. Return to the home screen and select the tool you need.
+3. Upload PDFs or drag them into the workspace.
+4. For merge jobs, reorder the files in the right-side drawer; for split jobs, only one PDF is processed at a time.
+5. For watermark jobs, adjust text or image settings and confirm the approximate result in the mock preview panel.
+6. Run the task. Outputs are written into the configured directory and source PDFs stay untouched.
 
-## Split Examples
+### Split Examples
 
 | Input mode | Example | Result |
 | --- | --- | --- |
-| Interval split | `Every 3 pages` | Splits as `1-3`, `4-6`, `7-9` and so on |
+| Interval split | Every `3` pages | Outputs `1-3`, `4-6`, `7-9` and so on |
 | Custom extract | `1-3,5-6` | Extracts pages 1, 2, 3, 5 and 6 into one new PDF |
-| Single pages | `2,4,8` | Extracts only pages 2, 4 and 8 |
+| Custom single pages | `2,4,8` | Extracts only pages 2, 4 and 8 into one new PDF |
 
-## Output Behavior
+### Watermark Capabilities
 
-- Compression outputs a new timestamped file based on the source name.
-- Merge outputs `merged-<timestamp>.pdf` by default.
-- Split outputs either multiple `part` files or one custom page-range file.
-- PDF-to-image conversion creates one folder per source PDF and exports ordered images inside it.
+| Item | Current support |
+| --- | --- |
+| Content | Text watermark, image watermark |
+| Layout | Center, tile |
+| Controls | Opacity, size, rotation, tile gap |
+| Preview | Simulated single-page preview with live updates |
+| Output | Batch-generated `*-watermark-<timestamp>-<index>.pdf` files |
 
 <a id="packaging-en"></a>
 
 ## Packaging
 
-The repository already bundles a Windows Ghostscript runtime under `core/`.
+The project already handles the Ghostscript runtime for Electron packaging. The key points are:
 
-To support Electron builds with `asar: true`, the project uses the following strategy:
+- `build.asar` is enabled in `package.json`.
+- `dist/` is copied into `resources/vue/` through `extraResources`.
+- `core/` is copied into `resources/core/` through `extraResources` so the bundled Ghostscript runtime remains accessible after packaging.
+- `electron/util/ghostscript-runtime.ts` switches paths between development and packaged builds and wires up the required environment variables.
 
-- `core/` is copied into `resources/core/` through `extraResources`.
-- A shared Ghostscript runtime resolver switches paths automatically between development and packaged builds.
-- Runtime dependencies such as `lib`, `Resource` and `iccprofiles` are injected through environment variables.
+That means:
 
-That means you do not need a global Ghostscript installation, and packaged builds do not require extra manual copying.
+- Development uses the repository-local `core/`.
+- Packaged builds use `resources/core/`.
+- Users do not need a separate system Ghostscript installation.
+
+The current packaging target is Windows `nsis`, with build output written to `electron-dist/`.
 
 <a id="structure-en"></a>
 
@@ -207,37 +203,43 @@ That means you do not need a global Ghostscript installation, and packaged build
 
 ```text
 pdf-squeezer/
-|- core/                         # Ghostscript Windows runtime
-|- docs/                         # README visual assets
+|- assets/                      # electron-builder resources
+|- core/                        # Ghostscript Windows runtime
+|- docs/
+|  \- readme-cover.svg          # README cover artwork
 |- electron/
-|  |- main.ts                    # Main process and IPC handlers
-|  |- preload.ts                 # contextBridge API
+|  |- main.ts                   # Main process and IPC handlers
+|  |- preload.ts                # contextBridge API exposure
 |  |- icon.ico
 |  |- icon.png
 |  \- util/
-|     |- ghostscript-runtime.ts  # Runtime path and env resolution
-|     |- pdf-editor.ts           # Compression and merge logic
-|     |- pdf-split.ts            # Page count and split logic
-|     \- pdf-convert.ts         # PDF to image conversion
+|     |- ghostscript-runtime.ts # Ghostscript path and env resolution
+|     |- pdf-convert.ts         # PDF to image conversion
+|     |- pdf-editor.ts          # Compression and merge logic
+|     |- pdf-split.ts           # Page counting and split logic
+|     \- pdf-watermark.ts       # Watermark processing
+|- public/
 |- src/
-|  |- App.vue
+|  |- App.vue                   # Custom title bar and window controls
 |  |- main.ts
 |  |- router/
-|  |  \- index.ts
+|  |  \- index.ts               # Home route + dynamic tool routes
 |  \- views/
-|     |- PdfWorkspace.vue        # Main workspace
+|     |- HomeView.vue           # Home screen
+|     |- PdfWorkspace.vue       # Shared workspace shell
+|     |- tool-config.ts         # Metadata for all 5 tools
 |     \- components/
 |        |- CompressView.vue
-|        |- MergeView.vue
-|        |- SplitView.vue
 |        |- ConvertView.vue
+|        |- MergeView.vue
 |        |- PdfFileList.vue
+|        |- SplitView.vue
+|        |- WatermarkView.vue
 |        \- dialog/
 |           \- SystemSettingDialog.vue
-|- public/
 |- package.json
-|- vite.config.ts
-\- README.md
+|- README.md
+\- README.en.md
 ```
 
 ## Roadmap
@@ -246,15 +248,18 @@ pdf-squeezer/
 - [x] PDF merge
 - [x] PDF split
 - [x] PDF to image
+- [x] PDF watermark
 - [ ] Image to PDF
-- [ ] More export naming options and batch controls
-- [ ] Cross-platform Ghostscript runtime support
+- [ ] More output naming rules and batch options
+- [ ] More watermark presets and positioning controls
+- [ ] Cross-platform runtime support
 
 ## Acknowledgements
 
 - [Electron](https://www.electronjs.org/)
 - [Vue 3](https://vuejs.org/)
 - [Ghostscript](https://ghostscript.com/)
+- [pdf-lib](https://pdf-lib.js.org/)
 - [Element Plus](https://element-plus.org/)
 
 ## License

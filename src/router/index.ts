@@ -1,9 +1,24 @@
 ﻿import { createRouter, createWebHashHistory } from 'vue-router'
+import { TOOL_CONFIGS } from '@/views/tool-config'
+
+const workspaceComponent = () => import('@/views/PdfWorkspace.vue')
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'Home', component: () => import('@/views/PdfWorkspace.vue') },
+    {
+      path: '/',
+      name: 'Home',
+      component: () => import('@/views/HomeView.vue'),
+    },
+    ...TOOL_CONFIGS.map((tool) => ({
+      path: tool.path,
+      name: tool.id,
+      component: workspaceComponent,
+      props: {
+        tool: tool.id,
+      },
+    })),
   ],
 })
 

@@ -1,7 +1,7 @@
 {
   "name": "pdf-squeezer",
-  "version": "0.1.1",
-  "description": "A lightweight PDF compression tool built with Electron and Vue 3, using Ghostscript for high-quality PDF compression.",
+  "version": "0.2.0",
+  "description": "A local-first desktop app for streamlined PDF workflows.",
   "private": true,
   "type": "module",
   "main": "electron/main.ts",
