@@ -1,6 +1,6 @@
 <template>
   <div class="tool-panel split-panel">
-    <section class="hero-card hero-card--split">
+    <!-- <section class="hero-card hero-card--split">
       <div class="hero-badge">拆分工具</div>
       <h3>按页拆分或提取指定页面</h3>
       <p>适合把长文档拆成多个小文件，或者单独提取需要的页码，便于发送、归档和二次整理。</p>
@@ -9,7 +9,7 @@
         <span>支持平均拆分</span>
         <span>支持自定义页码</span>
       </div>
-    </section>
+    </section> -->
 
     <div
       id="dropArea"

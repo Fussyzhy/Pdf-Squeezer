@@ -1,10 +1,10 @@
 <template>
   <div class="convert-panel">
-    <section class="hero-card">
+    <!-- <section class="hero-card">
       <div class="hero-badge">格式转换</div>
       <h3>先选择转换方式，再配置输出格式</h3>
       <p>当前先支持 PDF 转图片，后续可以继续扩展图片转 PDF 等更多转换类型。</p>
-    </section>
+    </section> -->
 
     <div
       id="dropArea"

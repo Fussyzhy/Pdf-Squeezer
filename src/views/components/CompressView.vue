@@ -1,6 +1,6 @@
 <template>
   <div class="tool-panel compress-panel">
-    <section class="hero-card hero-card--compress">
+    <!-- <section class="hero-card hero-card--compress">
       <div class="hero-badge">压缩工具</div>
       <h3>缩小 PDF 体积，兼顾清晰度</h3>
       <p>适合邮件发送、系统上传和档案整理，压缩后会保留原文件并输出新的结果文件。</p>
@@ -9,7 +9,7 @@
         <span>保留原文件</span>
         <span>按等级控制体积</span>
       </div>
-    </section>
+    </section> -->
 
     <div
       id="dropArea"

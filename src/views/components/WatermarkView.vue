@@ -1,6 +1,6 @@
 <template>
   <div class="tool-panel watermark-panel">
-    <section class="hero-card hero-card--watermark">
+    <!-- <section class="hero-card hero-card--watermark">
       <div class="hero-badge">水印工具</div>
       <h3>为 PDF 批量添加文字或图片水印</h3>
       <p>支持文字与图片两种水印类型，可设置透明度、角度与铺满方式，适合内部资料与品牌标识。</p>
@@ -9,7 +9,7 @@
         <span>批量处理</span>
         <span>铺满与居中</span>
       </div>
-    </section>
+    </section> -->
 
     <div
       id="dropArea"
