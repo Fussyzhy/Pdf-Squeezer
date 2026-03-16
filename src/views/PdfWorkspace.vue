@@ -109,9 +109,13 @@ import { TOOL_CONFIG_MAP, type ToolId } from '@/views/tool-config'
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
 type PdfFile = { name: string; buffer: ArrayBuffer }
 type PdfBinaryPayload = { name: string; buffer: Uint8Array }
+type SplitPageRange = {
+  startPage: number
+  endPage: number
+}
 type SplitSubmitOptions =
   | { mode: 'interval'; pagesPerFile: number }
-  | { mode: 'custom'; pageRanges: string }
+  | { mode: 'custom'; pageRanges: SplitPageRange[] }
 type ConvertSubmitOptions = {
   mode: 'pdf-to-image'
   imageFormat: 'png' | 'jpeg'
@@ -728,6 +732,7 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
     right: 110px;
     left: unset;
     cursor: pointer;
+    font-size: 16px;
   }
 }
 

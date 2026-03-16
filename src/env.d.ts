@@ -14,9 +14,13 @@ type PdfConvertResult = {
   outputDirectory: string
   outputFiles: string[]
 }
+type SplitPageRange = {
+  startPage: number
+  endPage: number
+}
 type SplitOptions =
   | { mode: 'interval'; pagesPerFile: number }
-  | { mode: 'custom'; pageRanges: string }
+  | { mode: 'custom'; pageRanges: SplitPageRange[] }
 
 type WatermarkImagePayload = {
   data: Uint8Array

@@ -12,9 +12,14 @@ export interface PdfFile {
   buffer: Buffer
 }
 
+export interface SplitPageRange {
+  startPage: number
+  endPage: number
+}
+
 export type SplitOptions =
   | { mode: 'interval'; pagesPerFile: number }
-  | { mode: 'custom'; pageRanges: string }
+  | { mode: 'custom'; pageRanges: SplitPageRange[] }
 
 export interface SplitResult {
   outputFiles: string[]
@@ -58,47 +63,25 @@ async function getPDFPageCountFromPath(filePath: string) {
   return pageCount
 }
 
-function parseCustomPageRanges(pageRanges: string, pageCount: number) {
-  const normalizedInput = pageRanges.replace(/\s+/g, '')
-
-  if (!normalizedInput) {
+function normalizeCustomPageRanges(pageRanges: SplitPageRange[], pageCount: number) {
+  if (!Array.isArray(pageRanges) || !pageRanges.length) {
     throw new Error('Page ranges are required')
   }
 
-  const segments = normalizedInput.split(',').filter(Boolean)
+  return pageRanges.map((range, index) => {
+    const start = Math.trunc(range.startPage)
+    const end = Math.trunc(range.endPage)
 
-  if (!segments.length) {
-    throw new Error('Page ranges are required')
-  }
-
-  return segments.map((segment) => {
-    const singlePageMatch = /^(\d+)$/.exec(segment)
-
-    if (singlePageMatch) {
-      const page = Number.parseInt(singlePageMatch[1], 10)
-
-      if (page < 1 || page > pageCount) {
-        throw new Error(`Page ${page} is outside the document range`)
-      }
-
-      return `${page}`
+    if (!Number.isInteger(start) || !Number.isInteger(end)) {
+      throw new Error(`Invalid page range at row ${index + 1}`)
     }
-
-    const rangeMatch = /^(\d+)-(\d+)$/.exec(segment)
-
-    if (!rangeMatch) {
-      throw new Error(`Invalid page range: ${segment}`)
-    }
-
-    const start = Number.parseInt(rangeMatch[1], 10)
-    const end = Number.parseInt(rangeMatch[2], 10)
 
     if (start < 1 || end < 1 || start > end) {
-      throw new Error(`Invalid page range: ${segment}`)
+      throw new Error(`Invalid page range at row ${index + 1}`)
     }
 
     if (end > pageCount) {
-      throw new Error(`Page range ${segment} is outside the document range`)
+      throw new Error(`Page range ${start}-${end} is outside the document range`)
     }
 
     return `${start}-${end}`
@@ -167,7 +150,7 @@ export async function splitPDF(file: PdfFile, outputFolder: string, options: Spl
       return { outputFiles, pageCount }
     }
 
-    const normalizedPageRanges = parseCustomPageRanges(options.pageRanges, pageCount)
+    const normalizedPageRanges = normalizeCustomPageRanges(options.pageRanges, pageCount)
     const outputFile = path.join(
       outputFolder,
       `${baseName}-pages-${sanitizeFileNamePart(normalizedPageRanges)}-${timestamp}.pdf`,
