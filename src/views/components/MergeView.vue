@@ -1,6 +1,6 @@
 <template>
   <div class="tool-panel merge-panel">
-    <section class="hero-card hero-card--merge">
+    <!-- <section class="hero-card hero-card--merge">
       <div class="hero-badge">合并工具</div>
       <h3>按顺序合并多个 PDF</h3>
       <p>把多个文档整理成一个完整文件，适合合同附件、扫描件归档和资料汇总。</p>
@@ -9,7 +9,7 @@
         <span>按列表顺序输出</span>
         <span>适合批量整理</span>
       </div>
-    </section>
+    </section> -->
 
     <div
       id="dropArea"

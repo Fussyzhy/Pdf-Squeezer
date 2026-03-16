@@ -3,7 +3,12 @@ import fs from 'fs'
 import { compressPDF, mergePDF } from './util/pdf-editor.ts'
 import { convertPDF, type PdfConvertOptions } from './util/pdf-convert.ts'
 import { getPDFPageCount, splitPDF, type PdfFile, type SplitOptions } from './util/pdf-split.ts'
-import { addWatermark, type WatermarkImage, type WatermarkOptions } from './util/pdf-watermark.ts'
+import {
+  addWatermark,
+  type WatermarkImage,
+  type WatermarkOptions,
+  type WatermarkPasswordFailure,
+} from './util/pdf-watermark.ts'
 
 const require = createRequire(import.meta.url)
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
@@ -29,7 +34,7 @@ function createWindow() {
     icon: path.join(import.meta.dirname, 'icon.ico'),
     resizable: false,
     frame: false,
-    titleBarStyle: "hidden",
+    titleBarStyle: 'hidden',
   })
 
   win.setMenu(null)
@@ -58,6 +63,16 @@ function getFileNameParts(fileName: string) {
   return {
     baseName: parsed.name || 'file',
     extension: parsed.ext ? parsed.ext.slice(1) : 'pdf',
+  }
+}
+
+function toWatermarkFailureResponse(result: WatermarkPasswordFailure) {
+  return {
+    success: false as const,
+    error: result.error,
+    code: result.code,
+    fileIndex: result.fileIndex,
+    fileName: result.fileName,
   }
 }
 
@@ -164,16 +179,20 @@ ipcMain.handle('watermark-pdf-buffer', async (_event: unknown, files: RendererPd
     const { watermarkImage: _ignored, ...watermarkOptions } = options
     const result = await addWatermark(files.map(toBufferFile), outputFolder, watermarkImage, watermarkOptions)
 
+    if ('code' in result) {
+      return toWatermarkFailureResponse(result)
+    }
+
     return { success: true, outputFiles: result.outputFiles }
   } catch (err: any) {
     return { success: false, error: err.message }
   }
 })
 
-ipcMain.handle("window-minimize", () => {
-  BrowserWindow.getFocusedWindow().minimize();
-});
+ipcMain.handle('window-minimize', () => {
+  BrowserWindow.getFocusedWindow().minimize()
+})
 
-ipcMain.handle("window-close", () => {
-  BrowserWindow.getFocusedWindow().close();
-});
+ipcMain.handle('window-close', () => {
+  BrowserWindow.getFocusedWindow().close()
+})

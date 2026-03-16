@@ -66,7 +66,7 @@ export const TOOL_CONFIGS: ToolConfig[] = [
     id: 'watermark',
     path: '/watermark',
     navLabel: '水印',
-    title: '批量添加文字或图片水印',
+    title: '批量添加水印',
     description: '支持文字和图片两种水印，可调透明度、大小、角度和铺满方式。',
     drawerTitle: '水印文件',
     badge: 'Watermark PDF',

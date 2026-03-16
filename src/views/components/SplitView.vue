@@ -1,16 +1,5 @@
 <template>
   <div class="tool-panel split-panel">
-    <section class="hero-card hero-card--split">
-      <div class="hero-badge">拆分工具</div>
-      <h3>按页拆分或提取指定页面</h3>
-      <p>适合把长文档拆成多个小文件，或者单独提取需要的页码，便于发送、归档和二次整理。</p>
-      <div class="hero-tags">
-        <span>单文件处理</span>
-        <span>支持平均拆分</span>
-        <span>支持自定义页码</span>
-      </div>
-    </section>
-
     <div
       id="dropArea"
       :class="{ hover: dropHover }"
@@ -36,7 +25,7 @@
           </div>
 
           <div class="summary-status">
-            {{ pageCountLoading ? '正在解析文档页数，请稍候。' : '上传后即可选择拆分方式并开始处理。' }}
+            {{ pageCountLoading ? '正在解析文档页数，请稍候。' : '上传完成后即可选择拆分方式并开始处理。' }}
           </div>
         </div>
       </section>
@@ -57,7 +46,7 @@
       <section class="form-card">
         <div v-if="splitMode === 'interval'" class="form-group">
           <div class="option-row">
-            <span class="option-title">每个文档页数</span>
+            <span class="option-title">每个文件页数</span>
             <el-input-number
               v-model="pagesPerFile"
               :min="1"
@@ -65,18 +54,64 @@
               controls-position="right"
             />
           </div>
-          <span class="option-tip">例如输入 3，则每 3 页生成一个新的 PDF 文档。</span>
+          <span class="option-tip">例如输入 3，则每 3 页生成一个新的 PDF 文件。</span>
         </div>
 
-        <div v-else class="form-group">
-          <span class="option-title">自定义页码范围</span>
-          <el-input
-            v-model="customPageRanges"
-            placeholder="例如 1-3,5-6"
-            clearable
-          />
-          <span class="option-tip">会把这些页提取出来，并合并生成一个新的 PDF 文档。</span>
-        </div>
+        <el-scrollbar v-else class="form-group list">
+          <div class="option-row option-row--ranges">
+            <span class="option-title">自定义页码范围</span>
+            <button class="range-add-button" type="button" @click="handleAddRange">
+              添加
+            </button>
+          </div>
+
+          <div class="range-list">
+            <div
+              v-for="(pageRange, index) in customPageRanges"
+              :key="pageRange.id"
+              class="range-item"
+            >
+              <span class="range-index">#{{ index + 1 }}</span>
+
+              <div class="range-field">
+                <el-input
+                  v-model="pageRange.startPage"
+                  :min="1"
+                  :max="pageCount || 9999"
+                  controls-position="right"
+                  type="number"
+                  :controls="false"
+                />
+              </div>
+
+              <span class="range-separator">至</span>
+
+              <div class="range-field">
+                <el-input
+                  v-model="pageRange.endPage"
+                  :min="1"
+                  :max="pageCount || 9999"
+                  controls-position="right"
+                  type="number"
+                  :controls="false"
+                />
+              </div>
+
+              <button
+                class="range-remove-button"
+                type="button"
+                :disabled="customPageRanges.length === 1"
+                @click="handleRemoveRange(pageRange.id)"
+              >
+                <el-icon>
+                  <Delete/>
+                </el-icon>
+              </button>
+            </div>
+          </div>
+
+          <span class="option-tip">每条范围都会按顺序提取并合并到同一个新 PDF 中，单页可填写为 5 到 5。</span>
+        </el-scrollbar>
       </section>
 
       <section class="tip-card">
@@ -93,18 +128,18 @@
       </div>
       <div class="step-item">
         <span>2</span>
-        <strong>选择方式</strong>
-        <p>可按固定页数拆分，也可提取指定页码。</p>
+        <strong>设置规则</strong>
+        <p>可以按固定页数平均拆分，也可以用多条页码范围提取指定内容。</p>
       </div>
       <div class="step-item">
         <span>3</span>
-        <strong>开始拆分</strong>
-        <p>输出结果会保存在你设置的输出目录中。</p>
+        <strong>开始处理</strong>
+        <p>处理结果会保存到你设置的输出目录中。</p>
       </div>
     </div>
 
     <div class="action-bar">
-      <span class="action-hint">建议先确认页数读取完成，再执行拆分，避免参数设置不准确。</span>
+      <span class="action-hint">建议先确认页数读取完成，再执行拆分，避免范围设置超过文档页数。</span>
       <button :disabled="pageCountLoading || !pageCount" type="button" @click="handleSplit">
         开始拆分
       </button>
@@ -117,9 +152,18 @@ import { ElMessage } from 'element-plus'
 import { computed, ref, watch } from 'vue'
 
 type PdfFile = { name: string; buffer: ArrayBuffer }
+type SplitPageRange = {
+  startPage: number
+  endPage: number
+}
 type SplitSubmitOptions =
   | { mode: 'interval'; pagesPerFile: number }
-  | { mode: 'custom'; pageRanges: string }
+  | { mode: 'custom'; pageRanges: SplitPageRange[] }
+type EditableSplitPageRange = {
+  id: number
+  startPage: number | undefined
+  endPage: number | undefined
+}
 type SplitModeMeta = {
   title: string
   description: string
@@ -140,22 +184,29 @@ const emit = defineEmits<{
 const splitModeMetaMap: Record<'interval' | 'custom', SplitModeMeta> = {
   interval: {
     title: '平均拆分',
-    description: '按固定页数连续拆分，适合把大文档均匀切分成多个小文件。',
+    description: '按固定页数连续拆分，适合把大文档均匀切成多个小文件。',
     scene: '适用场景：章节整理、分批发送、按份归档。',
-    tip: '如果文档页数很多，建议先按较小页数拆分，后续更方便单独发送和检查。',
+    tip: '如果文档页数较多，建议先按较小页数拆分，后续更方便单独发送和检查。',
   },
   custom: {
     title: '自定义提取',
-    description: '按指定页码范围提取内容，适合只保留需要的页面组合。',
+    description: '按多条页码范围提取内容，适合只保留需要的页面组合。',
     scene: '适用场景：提取合同页、摘要页、封面和附件。',
-    tip: '页码范围支持逗号和连字符，例如 1-3,5,8-10。建议先确认原文档总页数。',
+    tip: '每条范围都需要填写起始页和结束页，处理时会按列表顺序合并到一个新文件中。',
   },
 }
+
+const createRangeItem = (id: number): EditableSplitPageRange => ({
+  id,
+  startPage: undefined,
+  endPage: undefined,
+})
 
 const dropHover = ref(false)
 const splitMode = ref<'interval' | 'custom'>('interval')
 const pagesPerFile = ref(1)
-const customPageRanges = ref('')
+const customPageRanges = ref<EditableSplitPageRange[]>([createRangeItem(1)])
+const nextRangeId = ref(2)
 
 const currentModeMeta = computed(() => splitModeMetaMap[splitMode.value])
 
@@ -163,6 +214,16 @@ watch(() => props.pageCount, (pageCount) => {
   if (pageCount && pagesPerFile.value > pageCount) {
     pagesPerFile.value = pageCount
   }
+
+  if (!pageCount) {
+    return
+  }
+
+  customPageRanges.value = customPageRanges.value.map((range) => ({
+    ...range,
+    startPage: typeof range.startPage === 'number' ? Math.min(range.startPage, pageCount) : range.startPage,
+    endPage: typeof range.endPage === 'number' ? Math.min(range.endPage, pageCount) : range.endPage,
+  }))
 })
 
 const readPdfFile = (file: File) => {
@@ -209,6 +270,58 @@ const handleClickUpload = async () => {
   }
 }
 
+const handleAddRange = () => {
+  customPageRanges.value.push(createRangeItem(nextRangeId.value))
+  nextRangeId.value += 1
+}
+
+const handleRemoveRange = (id: number) => {
+  if (customPageRanges.value.length === 1) {
+    return
+  }
+
+  customPageRanges.value = customPageRanges.value.filter((range) => range.id !== id)
+}
+
+const getNormalizedCustomRanges = () => {
+  if (!customPageRanges.value.length) {
+    ElMessage.error('请至少添加一条页码范围')
+    return null
+  }
+
+  const normalizedRanges: SplitPageRange[] = []
+
+  for (const [index, pageRange] of customPageRanges.value.entries()) {
+    const rowLabel = `第 ${index + 1} 条范围`
+    const startPage = pageRange.startPage
+    const endPage = pageRange.endPage
+
+    if (typeof startPage !== 'number' || !Number.isInteger(startPage) || typeof endPage !== 'number' || !Number.isInteger(endPage)) {
+      ElMessage.error(`${rowLabel} 请填写完整的起始页和结束页`)
+      return null
+    }
+
+    if (startPage < 1 || endPage < 1) {
+      ElMessage.error(`${rowLabel} 的页码必须大于 0`)
+      return null
+    }
+
+    if (startPage > endPage) {
+      ElMessage.error(`${rowLabel} 的起始页不能大于结束页`)
+      return null
+    }
+
+    if (props.pageCount && endPage > props.pageCount) {
+      ElMessage.error(`${rowLabel} 超出了文档总页数`)
+      return null
+    }
+
+    normalizedRanges.push({ startPage, endPage })
+  }
+
+  return normalizedRanges
+}
+
 const handleSplit = () => {
   if (props.pageCountLoading) {
     ElMessage.warning('正在读取页数，请稍候')
@@ -228,14 +341,15 @@ const handleSplit = () => {
     return
   }
 
-  if (!customPageRanges.value.trim()) {
-    ElMessage.error('请输入要提取的页码范围')
+  const normalizedRanges = getNormalizedCustomRanges()
+
+  if (!normalizedRanges) {
     return
   }
 
   emit('handleSplit', {
     mode: 'custom',
-    pageRanges: customPageRanges.value,
+    pageRanges: normalizedRanges,
   })
 }
 </script>
@@ -245,54 +359,6 @@ const handleSplit = () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.hero-card {
-  padding: 18px 20px;
-  border-radius: 16px;
-  text-align: left;
-  color: #1f2a37;
-  background: linear-gradient(135deg, #effcfa 0%, #fbfefe 100%);
-  border: 1px solid #cfeee8;
-
-  h3 {
-    margin: 8px 0 6px;
-    font-size: 22px;
-  }
-
-  p {
-    margin: 0;
-    color: #5d6f6c;
-    line-height: 1.6;
-  }
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(20, 184, 166, 0.14);
-  color: #0f766e;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-
-  span {
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.76);
-    border: 1px solid rgba(20, 184, 166, 0.18);
-    color: #4b6360;
-    font-size: 12px;
-  }
 }
 
 #dropArea {
@@ -424,6 +490,12 @@ const handleSplit = () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  &.list {
+    min-height: 300px;
+    max-height: 300px;
+    overflow: auto;
+  }
 }
 
 .option-row {
@@ -431,6 +503,111 @@ const handleSplit = () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.option-row--ranges {
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.range-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.range-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fbfb;
+  border: 1px solid #e2efec;
+}
+
+.range-index {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.range-field {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  :deep(.el-input) {
+    .el-input__wrapper {
+      box-shadow: none;
+      background-color: #ffffff;
+    }
+  }
+}
+
+.range-label {
+  font-size: 12px;
+  color: #667085;
+}
+
+.range-separator {
+  color: #5f6b68;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.range-add-button,
+.range-remove-button {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.range-add-button {
+  height: 24px;
+  padding: 0 14px;
+  background: #e9fbf8;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.range-add-button:hover {
+  background: #d8f7f1;
+}
+
+.range-remove-button {
+  align-self: flex-end;
+  height: 34px;
+  padding: 0 12px;
+  color: #ff6d6d;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+}
+
+.range-remove-button:hover:not(:disabled) {
+  color: #ff8f8f;
+}
+
+.range-remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .tip-card {
@@ -512,11 +689,15 @@ const handleSplit = () => {
   width: 100%;
 }
 
-:deep(.el-input-number) {
+.option-row :deep(.el-input-number) {
   width: 180px;
 }
 
-button {
+.range-field :deep(.el-input-number) {
+  width: 100%;
+}
+
+.action-bar > button {
   background-color: #14b8a6;
   color: white;
   border: none;
@@ -529,12 +710,12 @@ button {
   box-shadow: 0 10px 20px rgba(20, 184, 166, 0.2);
 }
 
-button:hover:not(:disabled) {
+.action-bar > button:hover:not(:disabled) {
   background-color: #0fa596;
   transform: translateY(-1px);
 }
 
-button:disabled {
+.action-bar > button:disabled {
   background-color: #8ad8cf;
   box-shadow: none;
   cursor: not-allowed;
@@ -550,12 +731,29 @@ button:disabled {
   .summary-row,
   .action-bar,
   .card-header,
-  .option-row {
+  .option-row,
+  .range-item {
     flex-direction: column;
     align-items: stretch;
   }
 
-  :deep(.el-input-number) {
+  .range-index {
+    align-self: flex-start;
+  }
+
+  .range-separator {
+    padding-top: 0;
+    align-self: center;
+  }
+
+  .range-add-button,
+  .range-remove-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .option-row :deep(.el-input-number),
+  .range-field :deep(.el-input-number) {
     width: 100%;
   }
 }

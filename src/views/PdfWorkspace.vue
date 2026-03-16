@@ -4,17 +4,22 @@
     :class="{ 'workspace-shell--collapsed': !fileListVisible }"
     :style="{ '--tool-accent': currentTool.accent }"
     v-loading="isLoading"
+    element-loading-text="文件处理中，请耐心等待..."
   >
+    <span class="header-kicker back-button" @click="handleGoHome">
+      <el-icon>
+        <arrow-left/>
+      </el-icon>
+    </span>
+    <span class="header-kicker">{{ currentTool.badge }}</span>
+    <span class="header-kicker setting" @click="handleOpenSettings">
+      <el-icon>
+        <Setting/>
+      </el-icon>
+    </span>
     <el-scrollbar class="workspace-main">
       <header class="workspace-header">
         <div class="header-copy">
-          <button class="back-button" type="button" @click="handleGoHome">
-            <el-icon>
-              <arrow-left/>
-            </el-icon>
-          </button>
-
-          <span class="header-kicker">{{ currentTool.badge }}</span>
           <h1>{{ currentTool.title }}</h1>
           <p>{{ currentTool.description }}</p>
 
@@ -23,7 +28,7 @@
           </div>
         </div>
 
-        <div class="header-side">
+        <!-- <div class="header-side">
           <div class="output-card">
             <span class="output-card__label">输出目录</span>
             <strong>{{ outputFolderName }}</strong>
@@ -38,7 +43,7 @@
               输出设置
             </button>
           </div>
-        </div>
+        </div> -->
       </header>
 
       <compress-view
@@ -89,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CompressView from '@/views/components/CompressView.vue'
@@ -104,9 +109,13 @@ import { TOOL_CONFIG_MAP, type ToolId } from '@/views/tool-config'
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
 type PdfFile = { name: string; buffer: ArrayBuffer }
 type PdfBinaryPayload = { name: string; buffer: Uint8Array }
+type SplitPageRange = {
+  startPage: number
+  endPage: number
+}
 type SplitSubmitOptions =
   | { mode: 'interval'; pagesPerFile: number }
-  | { mode: 'custom'; pageRanges: string }
+  | { mode: 'custom'; pageRanges: SplitPageRange[] }
 type ConvertSubmitOptions = {
   mode: 'pdf-to-image'
   imageFormat: 'png' | 'jpeg'
@@ -128,7 +137,17 @@ type WatermarkSubmitOptions = {
   tileGap: number
   offsetX: number
   offsetY: number
+  pdfPasswords?: string[]
 }
+type WatermarkResponse =
+  | { success: true; outputFiles?: string[] }
+  | {
+      success: false
+      error?: string
+      code?: 'PASSWORD_REQUIRED' | 'INVALID_PASSWORD'
+      fileIndex?: number
+      fileName?: string
+    }
 
 const props = defineProps<{
   tool: ToolId
@@ -158,6 +177,7 @@ const mergeFiles = ref<PdfFile[]>([])
 const splitFiles = ref<PdfFile[]>([])
 const convertFiles = ref<PdfFile[]>([])
 const watermarkFiles = ref<PdfFile[]>([])
+const watermarkPasswords = ref<string[]>([])
 const splitPageCount = ref<number | null>(null)
 const splitPageCountLoading = ref(false)
 const splitPageCountRequestId = ref(0)
@@ -231,6 +251,14 @@ watch(
     fileListVisible.value = getFilesForTool(tool).length > 0
   },
   { immediate: true },
+)
+
+watch(
+  watermarkFiles,
+  () => {
+    watermarkPasswords.value = []
+  },
+  { deep: true },
 )
 
 watch(
@@ -333,7 +361,8 @@ const requireOutputFolder = () => {
   const outputFolder = outputFolderPath.value
 
   if (!outputFolder) {
-    ElMessage.error('请先在右上角设置输出目录')
+    ElMessage.error('请先设置输出目录')
+    handleOpenSettings()
     return null
   }
 
@@ -504,6 +533,70 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
   }
 }
 
+const promptForPdfPassword = async (fileName: string, invalidPassword = false) => {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      invalidPassword
+        ? `"${fileName}" 的密码不正确，请重新输入。`
+        : `"${fileName}" 已加密码保护，请输入密码后继续生成可编辑副本。`,
+      'PDF 密码',
+      {
+        confirmButtonText: '继续',
+        cancelButtonText: '取消',
+        inputType: 'password',
+        closeOnClickModal: false,
+        closeOnPressEscape: false,
+        inputValidator: (inputValue) => {
+          return inputValue.trim() ? true : '请输入 PDF 密码'
+        },
+      },
+    )
+
+    return value.trim()
+  } catch {
+    return null
+  }
+}
+
+const runWatermarkWithPasswordHandling = async (
+  outputFolder: string,
+  options: WatermarkSubmitOptions,
+): Promise<WatermarkResponse | null> => {
+  let result = await window.electronAPI.watermarkPDFBuffer(
+    toBinaryFiles(watermarkFiles.value),
+    outputFolder,
+    {
+      ...options,
+      pdfPasswords: [...watermarkPasswords.value],
+    },
+  )
+
+  while (!result.success && (result.code === 'PASSWORD_REQUIRED' || result.code === 'INVALID_PASSWORD')) {
+    if (typeof result.fileIndex !== 'number') {
+      return result
+    }
+
+    const targetFileName = result.fileName || watermarkFiles.value[result.fileIndex]?.name || `PDF ${result.fileIndex + 1}`
+    const password = await promptForPdfPassword(targetFileName, result.code === 'INVALID_PASSWORD')
+
+    if (password === null) {
+      return null
+    }
+
+    watermarkPasswords.value[result.fileIndex] = password
+    result = await window.electronAPI.watermarkPDFBuffer(
+      toBinaryFiles(watermarkFiles.value),
+      outputFolder,
+      {
+        ...options,
+        pdfPasswords: [...watermarkPasswords.value],
+      },
+    )
+  }
+
+  return result
+}
+
 const handleWatermark = async (options: WatermarkSubmitOptions) => {
   if (!watermarkFiles.value.length) {
     ElMessage.error('请先上传要加水印的 PDF 文件')
@@ -516,11 +609,12 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   isLoading.value = true
 
   try {
-    const result = await window.electronAPI.watermarkPDFBuffer(
-      toBinaryFiles(watermarkFiles.value),
-      outputFolder,
-      options,
-    )
+    const result = await runWatermarkWithPasswordHandling(outputFolder, options)
+
+    if (!result) {
+      ElMessage.info('已取消加密 PDF 的水印处理')
+      return
+    }
 
     if (result.success) {
       const outputFilesCount = result.outputFiles?.length ?? 0
@@ -546,7 +640,7 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
 .workspace-shell {
   width: min(980px, calc(100vw - 48px));
   max-height: calc(100vh - 100px);
-  padding: 18px;
+  padding: 38px 18px 18px;
   display: flex;
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.74);
@@ -606,24 +700,6 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   }
 }
 
-.back-button {
-  margin-bottom: 14px;
-  margin-right: 12px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.36);
-  background: rgba(255, 255, 255, 0.86);
-  color: #334155;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.back-button:hover {
-  border-color: var(--tool-accent);
-  color: var(--tool-accent);
-}
-
 .header-kicker {
   display: inline-flex;
   align-items: center;
@@ -636,6 +712,28 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  position: absolute;
+  left: 90px;
+  top: 20px;
+  z-index: 999;
+
+  &.back-button {
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.3s ease;
+    left: 40px;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &.setting {
+    right: 110px;
+    left: unset;
+    cursor: pointer;
+    font-size: 16px;
+  }
 }
 
 .header-tags {
@@ -764,6 +862,11 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
 }
 
 @media (max-width: 720px) {
+  .back-button {
+    height: 34px;
+    margin-bottom: 16px;
+  }
+
   .workspace-main {
     padding: 18px;
     margin-right: 0;
@@ -780,3 +883,4 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   }
 }
 </style>
+
