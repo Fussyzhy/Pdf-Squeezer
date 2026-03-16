@@ -112,7 +112,9 @@ export async function addWatermark(
   const offsetY = Number.isFinite(options.offsetY) ? options.offsetY : 0
 
   for (const [index, file] of files.entries()) {
-    const pdfDoc = await PDFDocument.load(file.buffer)
+    const pdfDoc = await PDFDocument.load(file.buffer, {
+      ignoreEncryption: true
+    })
     const embeddedImage = watermark.format === 'png'
       ? await pdfDoc.embedPng(watermark.data)
       : await pdfDoc.embedJpg(watermark.data)
