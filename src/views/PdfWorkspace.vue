@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CompressView from '@/views/components/CompressView.vue'
@@ -128,7 +128,17 @@ type WatermarkSubmitOptions = {
   tileGap: number
   offsetX: number
   offsetY: number
+  pdfPasswords?: string[]
 }
+type WatermarkResponse =
+  | { success: true; outputFiles?: string[] }
+  | {
+      success: false
+      error?: string
+      code?: 'PASSWORD_REQUIRED' | 'INVALID_PASSWORD'
+      fileIndex?: number
+      fileName?: string
+    }
 
 const props = defineProps<{
   tool: ToolId
@@ -158,6 +168,7 @@ const mergeFiles = ref<PdfFile[]>([])
 const splitFiles = ref<PdfFile[]>([])
 const convertFiles = ref<PdfFile[]>([])
 const watermarkFiles = ref<PdfFile[]>([])
+const watermarkPasswords = ref<string[]>([])
 const splitPageCount = ref<number | null>(null)
 const splitPageCountLoading = ref(false)
 const splitPageCountRequestId = ref(0)
@@ -231,6 +242,14 @@ watch(
     fileListVisible.value = getFilesForTool(tool).length > 0
   },
   { immediate: true },
+)
+
+watch(
+  watermarkFiles,
+  () => {
+    watermarkPasswords.value = []
+  },
+  { deep: true },
 )
 
 watch(
@@ -504,6 +523,70 @@ const handleConvert = async (options: ConvertSubmitOptions) => {
   }
 }
 
+const promptForPdfPassword = async (fileName: string, invalidPassword = false) => {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      invalidPassword
+        ? `"${fileName}" 的密码不正确，请重新输入。`
+        : `"${fileName}" 已加密码保护，请输入密码后继续生成可编辑副本。`,
+      'PDF 密码',
+      {
+        confirmButtonText: '继续',
+        cancelButtonText: '取消',
+        inputType: 'password',
+        closeOnClickModal: false,
+        closeOnPressEscape: false,
+        inputValidator: (inputValue) => {
+          return inputValue.trim() ? true : '请输入 PDF 密码'
+        },
+      },
+    )
+
+    return value.trim()
+  } catch {
+    return null
+  }
+}
+
+const runWatermarkWithPasswordHandling = async (
+  outputFolder: string,
+  options: WatermarkSubmitOptions,
+): Promise<WatermarkResponse | null> => {
+  let result = await window.electronAPI.watermarkPDFBuffer(
+    toBinaryFiles(watermarkFiles.value),
+    outputFolder,
+    {
+      ...options,
+      pdfPasswords: [...watermarkPasswords.value],
+    },
+  )
+
+  while (!result.success && (result.code === 'PASSWORD_REQUIRED' || result.code === 'INVALID_PASSWORD')) {
+    if (typeof result.fileIndex !== 'number') {
+      return result
+    }
+
+    const targetFileName = result.fileName || watermarkFiles.value[result.fileIndex]?.name || `PDF ${result.fileIndex + 1}`
+    const password = await promptForPdfPassword(targetFileName, result.code === 'INVALID_PASSWORD')
+
+    if (password === null) {
+      return null
+    }
+
+    watermarkPasswords.value[result.fileIndex] = password
+    result = await window.electronAPI.watermarkPDFBuffer(
+      toBinaryFiles(watermarkFiles.value),
+      outputFolder,
+      {
+        ...options,
+        pdfPasswords: [...watermarkPasswords.value],
+      },
+    )
+  }
+
+  return result
+}
+
 const handleWatermark = async (options: WatermarkSubmitOptions) => {
   if (!watermarkFiles.value.length) {
     ElMessage.error('请先上传要加水印的 PDF 文件')
@@ -516,11 +599,12 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   isLoading.value = true
 
   try {
-    const result = await window.electronAPI.watermarkPDFBuffer(
-      toBinaryFiles(watermarkFiles.value),
-      outputFolder,
-      options,
-    )
+    const result = await runWatermarkWithPasswordHandling(outputFolder, options)
+
+    if (!result) {
+      ElMessage.info('已取消加密 PDF 的水印处理')
+      return
+    }
 
     if (result.success) {
       const outputFilesCount = result.outputFiles?.length ?? 0
@@ -780,3 +864,4 @@ const handleWatermark = async (options: WatermarkSubmitOptions) => {
   }
 }
 </style>
+

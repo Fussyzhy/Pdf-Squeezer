@@ -33,11 +33,22 @@ type WatermarkOptions = {
   tileGap: number
   offsetX: number
   offsetY: number
+  pdfPasswords?: string[]
 }
 
 type WatermarkSubmitOptions = WatermarkOptions & {
   watermarkImage: WatermarkImagePayload
 }
+
+type WatermarkResponse =
+  | { success: true; outputFiles?: string[] }
+  | {
+      success: false
+      error?: string
+      code?: 'PASSWORD_REQUIRED' | 'INVALID_PASSWORD'
+      fileIndex?: number
+      fileName?: string
+    }
 
 declare global {
   interface Window {
@@ -49,7 +60,7 @@ declare global {
       convertPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, options: PdfConvertOptions) => Promise<{ success: boolean; error?: string; results?: PdfConvertResult[] }>
       getPDFPageCount: (inputFile: PdfBinaryPayload) => Promise<{ success: boolean; pageCount?: number; error?: string }>
       splitPDFBuffer: (inputFile: PdfBinaryPayload, outputFolder: string, options: SplitOptions) => Promise<{ success: boolean; error?: string; outputFiles?: string[]; pageCount?: number }>
-      watermarkPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, options: WatermarkSubmitOptions) => Promise<{ success: boolean; error?: string; outputFiles?: string[] }>
+      watermarkPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, options: WatermarkSubmitOptions) => Promise<WatermarkResponse>
       windowMiniSize: () => void
       windowClose: () => void
     }
