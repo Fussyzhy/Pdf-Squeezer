@@ -1,6 +1,6 @@
 {
   "name": "pdf-squeezer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A local-first desktop app for streamlined PDF workflows.",
   "private": true,
   "type": "module",
