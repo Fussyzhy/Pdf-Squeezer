@@ -4,6 +4,7 @@ export type ToolConfig = {
   id: ToolId
   path: `/${string}`
   navLabel: string
+  icon: string
   title: string
   description: string
   drawerTitle: string
@@ -13,11 +14,18 @@ export type ToolConfig = {
   tags: string[]
 }
 
+const compressIcon = new URL('../../assets/icon/compress.svg', import.meta.url).href
+const mergeIcon = new URL('../../assets/icon/merge.svg', import.meta.url).href
+const splitIcon = new URL('../../assets/icon/split.svg', import.meta.url).href
+const convertIcon = new URL('../../assets/icon/convert.svg', import.meta.url).href
+const watermarkIcon = new URL('../../assets/icon/watermark.svg', import.meta.url).href
+
 export const TOOL_CONFIGS: ToolConfig[] = [
   {
     id: 'compress',
     path: '/compress',
     navLabel: '压缩',
+    icon: compressIcon,
     title: '压缩 PDF 文件',
     description: '适合邮件发送、在线上传和归档整理，保留原文件并输出新的压缩结果。',
     drawerTitle: '压缩文件',
@@ -30,6 +38,7 @@ export const TOOL_CONFIGS: ToolConfig[] = [
     id: 'merge',
     path: '/merge',
     navLabel: '合并',
+    icon: mergeIcon,
     title: '按顺序合并多个 PDF',
     description: '将多个文档整理为一个结果文件，适合合同附件、扫描件和统一归档。',
     drawerTitle: '合并队列',
@@ -42,6 +51,7 @@ export const TOOL_CONFIGS: ToolConfig[] = [
     id: 'split',
     path: '/split',
     navLabel: '拆分',
+    icon: splitIcon,
     title: '按页拆分或提取指定页',
     description: '支持按固定页数连续拆分，也可以通过页码范围提取需要的页面。',
     drawerTitle: '拆分文件',
@@ -54,6 +64,7 @@ export const TOOL_CONFIGS: ToolConfig[] = [
     id: 'convert',
     path: '/convert',
     navLabel: '格式转换',
+    icon: convertIcon,
     title: '将 PDF 转换为图片',
     description: '当前支持导出 PNG 和 JPEG，可按不同 DPI 输出，适合预览图和素材图。',
     drawerTitle: '转换文件',
@@ -66,6 +77,7 @@ export const TOOL_CONFIGS: ToolConfig[] = [
     id: 'watermark',
     path: '/watermark',
     navLabel: '水印',
+    icon: watermarkIcon,
     title: '批量添加水印',
     description: '支持文字和图片两种水印，可调透明度、大小、角度和铺满方式。',
     drawerTitle: '水印文件',
