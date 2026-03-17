@@ -1,11 +1,5 @@
 <template>
   <div class="convert-panel">
-    <!-- <section class="hero-card">
-      <div class="hero-badge">格式转换</div>
-      <h3>先选择转换方式，再配置输出格式</h3>
-      <p>当前先支持 PDF 转图片，后续可以继续扩展图片转 PDF 等更多转换类型。</p>
-    </section> -->
-
     <div
       id="dropArea"
       :class="{ hover: dropHover }"
@@ -14,13 +8,19 @@
       @drop="handleDrop"
       @click="handleClickUpload"
     >
-      <span id="inputPath">{{ uploadPrompt }}</span>
+      <div class="upload-copy">
+        <strong>上传源文件</strong>
+        <span>{{ uploadPrompt }}</span>
+      </div>
     </div>
 
-    <section class="form-group">
-      <div class="section-header">
-        <span class="option-title">转换方式</span>
-        <span class="option-tip">先选处理方向，再配置输出细节</span>
+    <section class="surface-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Mode</span>
+          <h3>转换方式</h3>
+        </div>
+        <span class="section-note">当前先支持 PDF 转图片</span>
       </div>
 
       <div class="mode-grid">
@@ -35,38 +35,51 @@
           }"
           @click="handleModeSelect(option)"
         >
-          <div class="mode-card__header">
-            <strong>{{ option.label }}</strong>
-            <span>{{ option.available ? '已支持' : '规划中' }}</span>
-          </div>
-          <p>{{ option.description }}</p>
+          <strong>{{ option.label }}</strong>
+          <span>{{ option.available ? '可用' : '规划中' }}</span>
         </button>
       </div>
     </section>
 
     <div v-if="convertMode === 'pdf-to-image'" class="config-grid">
-      <section class="form-group">
-        <span class="option-title">输出图片格式</span>
-        <el-radio-group v-model="imageFormat">
+      <section class="surface-card">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Format</span>
+            <h3>输出格式</h3>
+          </div>
+        </div>
+
+        <el-radio-group v-model="imageFormat" class="format-switch">
           <el-radio-button label="png">PNG</el-radio-button>
           <el-radio-button label="jpeg">JPEG</el-radio-button>
         </el-radio-group>
-        <span class="option-tip">PNG 更清晰，JPEG 文件更小，适合快速分享。</span>
+
+        <p class="section-copy">{{ imageFormat === 'png' ? '更清晰，适合保留细节。' : '更轻量，适合快速分享。' }}</p>
       </section>
 
-      <section class="form-group">
-        <div class="option-row">
-          <span class="option-title">输出清晰度</span>
-          <el-select v-model="dpi" class="dpi-select">
-            <el-option
-              v-for="option in dpiOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
+      <section class="surface-card summary-card">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Quality</span>
+            <h3>清晰度</h3>
+          </div>
         </div>
-        <span class="option-tip">DPI 越高越清晰，但导出的图片体积也会更大。</span>
+
+        <el-select v-model="dpi" class="dpi-select">
+          <el-option
+            v-for="option in dpiOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
+        </el-select>
+
+        <div class="summary-tags">
+          <span>{{ dpi }} DPI</span>
+          <span>{{ imageFormat.toUpperCase() }}</span>
+          <span>按页导出</span>
+        </div>
       </section>
     </div>
 
@@ -93,7 +106,6 @@ type ConvertSubmitOptions = {
 type ConvertModeMeta = {
   label: string
   value: ConvertMode
-  description: string
   hint: string
   available: boolean
 }
@@ -102,23 +114,21 @@ const convertModeOptions: ConvertModeMeta[] = [
   {
     label: 'PDF 转图片',
     value: 'pdf-to-image',
-    description: '把 PDF 的每一页导出成独立图片，适合做预览图、素材图和分发浏览。',
-    hint: '当前会为每个 PDF 创建独立文件夹，并按页码顺序输出图片。',
+    hint: '会按页导出图片，并为每个 PDF 创建独立输出文件夹。',
     available: true,
   },
   {
     label: '图片转 PDF',
     value: 'image-to-pdf',
-    description: '未来可把多张图片按顺序整理成一个 PDF，适合票据、截图和扫描件归档。',
-    hint: '该模式还在规划中，当前先支持 PDF 转图片。',
+    hint: '该模式仍在规划中，当前先支持 PDF 转图片。',
     available: false,
   },
 ]
 
 const dpiOptions = [
-  { label: '150 DPI（推荐）', value: 150 },
+  { label: '150 DPI', value: 150 },
   { label: '200 DPI', value: 200 },
-  { label: '300 DPI（更清晰）', value: 300 },
+  { label: '300 DPI', value: 300 },
 ]
 
 const emit = defineEmits<{
@@ -132,20 +142,20 @@ const imageFormat = ref<'png' | 'jpeg'>('png')
 const dpi = ref(150)
 
 const currentModeMeta = computed<ConvertModeMeta>(() => {
-  return convertModeOptions.find((option) => option.value === convertMode.value) ?? convertModeOptions[0]!
+  return convertModeOptions.find((option) => option.value === convertMode.value) ?? convertModeOptions[0]
 })
 
 const uploadPrompt = computed(() => {
   if (convertMode.value === 'pdf-to-image') {
-    return '点击或拖拽 PDF 文件到这里上传'
+    return '点击或拖拽 PDF 到这里'
   }
 
-  return '该转换方式暂未开放上传'
+  return '该模式暂未开放上传'
 })
 
 const handleModeSelect = (option: ConvertModeMeta) => {
   if (!option.available) {
-    ElMessage.info('该转换方式正在规划中，当前先支持 PDF 转图片')
+    ElMessage.info('图片转 PDF 仍在规划中')
     return
   }
 
@@ -171,7 +181,7 @@ const handleDrop = async (event: DragEvent) => {
   dropHover.value = false
 
   if (convertMode.value !== 'pdf-to-image') {
-    ElMessage.info('该转换方式正在规划中，当前先支持 PDF 转图片')
+    ElMessage.info('当前仅支持 PDF 转图片')
     return
   }
 
@@ -186,7 +196,7 @@ const handleDrop = async (event: DragEvent) => {
 
 const handleClickUpload = async () => {
   if (convertMode.value !== 'pdf-to-image') {
-    ElMessage.info('该转换方式正在规划中，当前先支持 PDF 转图片')
+    ElMessage.info('当前仅支持 PDF 转图片')
     return
   }
 
@@ -199,7 +209,7 @@ const handleClickUpload = async () => {
 
 const handleConvert = () => {
   if (convertMode.value !== 'pdf-to-image') {
-    ElMessage.info('该转换方式正在规划中，当前先支持 PDF 转图片')
+    ElMessage.info('当前仅支持 PDF 转图片')
     return
   }
 
@@ -215,91 +225,84 @@ const handleConvert = () => {
 .convert-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.hero-card {
-  padding: 18px 20px;
-  border-radius: 16px;
-  text-align: left;
-  color: #1f2a37;
-  background: linear-gradient(135deg, #eef8f1 0%, #fbfefb 100%);
-  border: 1px solid #d7ecd9;
-
-  h3 {
-    margin: 8px 0 6px;
-    font-size: 22px;
-  }
-
-  p {
-    margin: 0;
-    color: #5d6b61;
-    line-height: 1.6;
-  }
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(103, 194, 58, 0.14);
-  color: #2f8f2d;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 16px;
 }
 
 #dropArea {
-  border: 2px dashed #9ec7a4;
-  border-radius: 14px;
-  padding: 30px;
-  color: #6b7280;
-  transition: all 0.3s ease;
+  border: 1px dashed rgba(103, 194, 58, 0.42);
+  border-radius: 22px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(103, 194, 58, 0.12), transparent 58%),
+    linear-gradient(180deg, #fcfffc 0%, #f3fbef 100%);
   cursor: pointer;
-  min-height: 72px;
+  transition: border-color 0.24s ease, transform 0.24s ease;
+}
+
+#dropArea:hover,
+#dropArea.hover {
+  border-color: #67c23a;
+  transform: translateY(-1px);
+}
+
+.upload-copy {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  background: #fcfffc;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
 
-  &:hover,
-  &.hover {
-    border-color: #67c23a;
-    background: #f3fbef;
-    color: #1f2937;
+  strong {
+    color: #0f172a;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+  }
 
-    #inputPath {
-      color: #4eaf2b;
-    }
+  span {
+    color: #64748b;
+    font-size: 14px;
   }
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.surface-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e1ebe1;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
   text-align: left;
-  padding: 16px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #e7efe7;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
-.section-header,
-.option-row {
+.section-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 16px;
 }
 
-.config-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(103, 194, 58, 0.12);
+  color: #2f8f2d;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.section-head h3 {
+  margin: 10px 0 0;
+  color: #0f172a;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.section-note {
+  color: #94a3b8;
+  font-size: 12px;
 }
 
 .mode-grid {
@@ -309,115 +312,130 @@ const handleConvert = () => {
 }
 
 .mode-card {
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid #dbe8dd;
-  background: #fcfffc;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #d7e7d7;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fcf7 100%);
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
-  p {
-    margin: 10px 0 0;
-    color: #647067;
-    line-height: 1.6;
-    font-size: 13px;
+  strong {
+    display: block;
+    color: #0f172a;
+    font-size: 16px;
+  }
+
+  span {
+    display: inline-flex;
+    margin-top: 8px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(103, 194, 58, 0.1);
+    color: #2f8f2d;
+    font-size: 12px;
+    font-weight: 700;
   }
 }
 
 .mode-card:hover {
   transform: translateY(-1px);
-  border-color: #67c23a;
 }
 
 .mode-card.active {
   border-color: #67c23a;
-  background: #f3fbef;
-  box-shadow: 0 12px 24px rgba(103, 194, 58, 0.14);
+  box-shadow: 0 14px 28px rgba(103, 194, 58, 0.14);
 }
 
 .mode-card.disabled {
-  opacity: 0.72;
-  background: #f8faf8;
+  opacity: 0.6;
 }
 
-.mode-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-
-  strong {
-    color: #253039;
-    font-size: 15px;
-  }
-
-  span {
-    padding: 4px 8px;
-    border-radius: 999px;
-    background: rgba(103, 194, 58, 0.14);
-    color: #2f8f2d;
-    font-size: 11px;
-    font-weight: 600;
-  }
-}
-
-.mode-card.disabled .mode-card__header span {
+.mode-card.disabled span {
   background: #eef2f0;
   color: #7b8a7d;
 }
 
-.option-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.option-tip,
-.action-hint {
-  font-size: 12px;
-  color: #909399;
+.section-copy {
+  margin: 14px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.summary-card {
+  background:
+    radial-gradient(circle at top right, rgba(103, 194, 58, 0.14), transparent 42%),
+    linear-gradient(180deg, #fafff9 0%, #ffffff 100%);
+}
+
+.summary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+
+  span {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid #d7e7d7;
+    color: #51616f;
+    font-size: 12px;
+    font-weight: 600;
+  }
 }
 
 .dpi-select {
-  width: 180px;
+  width: 100%;
 }
 
 .action-bar {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fafff9 0%, #ffffff 100%);
+  border: 1px solid #e1ebe1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #f7fbf7;
-  border: 1px solid #e1ebe1;
+}
+
+.action-hint {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
 }
 
 .primary-button {
-  background-color: #67c23a;
-  color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
+  border-radius: 12px;
+  padding: 12px 22px;
+  background: linear-gradient(135deg, #67c23a 0%, #4ea828 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-  box-shadow: 0 10px 20px rgba(103, 194, 58, 0.2);
+  white-space: nowrap;
+  box-shadow: 0 14px 28px rgba(103, 194, 58, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .primary-button:hover {
-  background-color: #57b02b;
   transform: translateY(-1px);
-}
-
-:deep(.el-select),
-:deep(.el-radio-group) {
-  width: 100%;
+  box-shadow: 0 18px 34px rgba(103, 194, 58, 0.28);
 }
 
 :deep(.el-radio-group) {
   display: flex;
+  width: 100%;
 }
 
 :deep(.el-radio-button) {
@@ -428,14 +446,15 @@ const handleConvert = () => {
   width: 100%;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .mode-grid,
   .config-grid {
     grid-template-columns: 1fr;
   }
+}
 
-  .section-header,
-  .option-row,
+@media (max-width: 720px) {
+  .section-head,
   .action-bar {
     flex-direction: column;
     align-items: stretch;
