@@ -8,7 +8,7 @@
     <strong>English</strong>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.2.1-3B82F6?style=for-the-badge" alt="Version" />
+    <img src="https://img.shields.io/badge/version-0.3.0-3B82F6?style=for-the-badge" alt="Version" />
     <img src="https://img.shields.io/badge/platform-Windows%20x64-0F172A?style=for-the-badge" alt="Platform" />
     <img src="https://img.shields.io/badge/build-electron--builder-7C3AED?style=for-the-badge" alt="Build" />
     <img src="https://img.shields.io/badge/license-MIT-16A34A?style=for-the-badge" alt="License" />
