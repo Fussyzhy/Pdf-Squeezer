@@ -16,6 +16,11 @@ const router = createRouter({
       name: 'Toolbox',
       component: () => import('@/views/ToolboxView.vue'),
     },
+    {
+      path: '/editor',
+      name: 'Editor',
+      component: () => import('@/views/PdfEditorView.vue'),
+    },
     ...TOOL_CONFIGS.map((tool) => ({
       path: tool.path,
       name: tool.id,

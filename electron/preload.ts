@@ -3,6 +3,7 @@
 contextBridge.exposeInMainWorld('electronAPI', {
   selectInputFiles: (multiple = true) => ipcRenderer.invoke('select-input-files', multiple),
   selectOutputFolder: () => ipcRenderer.invoke('select-output-folder'),
+  renderPdfPreview: (inputFile, options) => ipcRenderer.invoke('render-pdf-preview', inputFile, options),
   compressPDFBuffer: (inputFiles, outputFolder, level) => ipcRenderer.invoke('compress-pdf-buffer', inputFiles, outputFolder, level),
   mergePDFBuffer: (inputFiles, outputFolder) => ipcRenderer.invoke('merge-pdf-buffer', inputFiles, outputFolder),
   convertPDFBuffer: (inputFiles, outputFolder, options) => ipcRenderer.invoke('convert-pdf-buffer', inputFiles, outputFolder, options),

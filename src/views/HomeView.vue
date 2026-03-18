@@ -4,12 +4,12 @@
       <section class="home-card">
         <span class="home-badge">PDF Squeezer</span>
         <h1>打开 PDF 开始处理</h1>
-        <p>首页只保留主要入口。打开文件用于后续详细处理，工具箱入口单独进入快速处理页面。</p>
+        <p>首页只保留主入口。选择一个文件后进入编辑页，工具箱功能放在单独页面里。</p>
 
         <div class="entry-group">
           <button type="button" class="primary-entry" @click="handleOpenPdf">
             <strong>打开 PDF 文件</strong>
-            <span>选择一个文件继续处理</span>
+            <span>选择一个文件，进入编辑预览</span>
           </button>
 
           <RouterLink to="/toolbox" class="secondary-entry">
@@ -20,7 +20,7 @@
 
         <div class="home-status">
           <span>本地处理</span>
-          <span>Windows 桌面端</span>
+          <span>编辑预览已接入</span>
           <span>{{ selectedFileName || '未选择文件' }}</span>
         </div>
       </section>
@@ -30,22 +30,31 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useEditorStore } from '@/stores/editor'
 import { TOOL_CONFIGS } from '@/views/tool-config'
 
+const router = useRouter()
+const editorStore = useEditorStore()
+
 const toolCount = computed(() => TOOL_CONFIGS.length)
-const selectedFileName = ref('')
+const selectedFileName = computed(() => editorStore.currentFileName)
 
 const handleOpenPdf = async () => {
-  const files = await window.electronAPI.selectInputFiles(false)
-  const [file] = files
+  try {
+    const files = await window.electronAPI.selectInputFiles(false)
+    const [file] = files
 
-  if (!file) {
-    return
+    if (!file) {
+      return
+    }
+
+    editorStore.setCurrentFile(file)
+    await router.push('/editor')
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '打开 PDF 失败')
   }
-
-  selectedFileName.value = file.name
-  ElMessage.info(`已选择 ${file.name}，详细编辑页下一步接入。`)
 }
 </script>
 

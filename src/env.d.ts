@@ -1,13 +1,31 @@
-﻿export {}
+export {}
 
 type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
-type PdfFileData = { name: string; buffer: ArrayBuffer }
-type PdfBinaryPayload = { name: string; buffer: Uint8Array }
+type PdfBufferPayload = ArrayBuffer | Uint8Array
+type PdfFileData = { name: string; buffer: PdfBufferPayload }
+type PdfBinaryPayload = { name: string; buffer: PdfBufferPayload }
 type PdfConvertOptions = {
   mode: 'pdf-to-image'
   imageFormat: 'png' | 'jpeg'
   dpi: number
 }
+type PdfPreviewOptions = {
+  dpi?: number
+}
+type PdfPreviewPagePayload = {
+  pageNumber: number
+  image: Uint8Array
+}
+type PdfPreviewResponse =
+  | {
+      success: true
+      pageCount: number
+      pages: PdfPreviewPagePayload[]
+    }
+  | {
+      success: false
+      error?: string
+    }
 type PdfConvertResult = {
   sourceName: string
   mode: 'pdf-to-image'
@@ -59,6 +77,7 @@ declare global {
     electronAPI: {
       selectOutputFolder: () => Promise<string | null>
       selectInputFiles: (multiple?: boolean) => Promise<PdfFileData[]>
+      renderPdfPreview: (inputFile: PdfBinaryPayload, options?: PdfPreviewOptions) => Promise<PdfPreviewResponse>
       compressPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, level: CompressionLevel) => Promise<{ success: boolean; error?: string }>
       mergePDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string) => Promise<{ success: boolean; error?: string; outputPath?: string }>
       convertPDFBuffer: (inputFiles: PdfBinaryPayload[], outputFolder: string, options: PdfConvertOptions) => Promise<{ success: boolean; error?: string; results?: PdfConvertResult[] }>

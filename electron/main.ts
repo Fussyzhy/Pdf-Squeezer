@@ -2,6 +2,7 @@
 import fs from 'fs'
 import { compressPDF, mergePDF } from './util/pdf-editor.ts'
 import { convertPDF, type PdfConvertOptions } from './util/pdf-convert.ts'
+import { renderPdfPreview, type PdfPreviewOptions } from './util/pdf-preview.ts'
 import { getPDFPageCount, splitPDF, type PdfFile, type SplitOptions } from './util/pdf-split.ts'
 import {
   addWatermark,
@@ -105,6 +106,15 @@ ipcMain.handle('get-pdf-page-count', async (_event: unknown, file: RendererPdfFi
   try {
     const pageCount = await getPDFPageCount(toBufferFile(file))
     return { success: true, pageCount }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('render-pdf-preview', async (_event: unknown, file: RendererPdfFile, options?: PdfPreviewOptions) => {
+  try {
+    const result = await renderPdfPreview(toBufferFile(file), options)
+    return { success: true, pageCount: result.pageCount, pages: result.pages }
   } catch (err: any) {
     return { success: false, error: err.message }
   }
