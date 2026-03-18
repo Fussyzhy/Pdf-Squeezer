@@ -11,6 +11,11 @@ const router = createRouter({
       name: 'Home',
       component: () => import('@/views/HomeView.vue'),
     },
+    {
+      path: '/toolbox',
+      name: 'Toolbox',
+      component: () => import('@/views/ToolboxView.vue'),
+    },
     ...TOOL_CONFIGS.map((tool) => ({
       path: tool.path,
       name: tool.id,
