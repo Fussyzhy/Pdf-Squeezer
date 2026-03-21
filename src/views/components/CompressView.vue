@@ -1,16 +1,5 @@
 <template>
   <div class="tool-panel compress-panel">
-    <!-- <section class="hero-card hero-card--compress">
-      <div class="hero-badge">压缩工具</div>
-      <h3>缩小 PDF 体积，兼顾清晰度</h3>
-      <p>适合邮件发送、系统上传和档案整理，压缩后会保留原文件并输出新的结果文件。</p>
-      <div class="hero-tags">
-        <span>支持批量处理</span>
-        <span>保留原文件</span>
-        <span>按等级控制体积</span>
-      </div>
-    </section> -->
-
     <div
       id="dropArea"
       :class="{ hover: dropHover }"
@@ -19,58 +8,60 @@
       @drop="handleDrop"
       @click="handleClickUpload"
     >
-      <span id="inputPath">点击或拖拽 PDF 文件到这里上传</span>
+      <div class="upload-copy">
+        <strong>上传 PDF</strong>
+        <span>点击或拖拽文件到这里</span>
+      </div>
     </div>
 
-    <div class="option-grid">
-      <section class="form-card">
-        <div class="card-header">
-          <span class="card-title">压缩等级</span>
-          <span class="card-tip">直接在当前页调整，无需进入设置</span>
+    <div class="content-grid">
+      <section class="surface-card">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Preset</span>
+            <h3>压缩等级</h3>
+          </div>
+          <span class="section-note">选择一个即可开始</span>
         </div>
-        <el-select
-          :model-value="compressionLevel"
-          placeholder="请选择压缩等级"
-          @update:model-value="handleCompressionLevelChange"
-        >
-          <el-option
-            v-for="option in compressionLevelOptions"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          />
-        </el-select>
 
-        <div class="level-chips">
-          <span
+        <div class="level-grid">
+          <button
             v-for="option in compressionLevelOptions"
             :key="option.value"
+            type="button"
+            class="level-card"
             :class="{ active: option.value === compressionLevel }"
+            @click="handleCompressionLevelChange(option.value)"
           >
-            {{ option.label }}
-          </span>
+            <strong>{{ option.label }}</strong>
+            <span>{{ option.short }}</span>
+          </button>
         </div>
       </section>
 
-      <section class="info-card">
-        <span class="card-title">当前等级说明</span>
-        <strong>{{ currentLevelMeta.title }}</strong>
+      <section class="surface-card summary-card">
+        <span class="section-kicker">Current</span>
+        <h3>{{ currentLevelMeta.title }}</h3>
         <p>{{ currentLevelMeta.description }}</p>
-        <span class="info-scene">{{ currentLevelMeta.scene }}</span>
+
+        <div class="summary-tags">
+          <span>{{ currentLevelMeta.scene }}</span>
+          <span>{{ currentLevelMeta.balance }}</span>
+        </div>
 
         <div class="quality-meter">
-          <span>体积优先</span>
+          <span>体积</span>
           <div class="quality-track">
             <div class="quality-fill" :style="{ width: `${qualityPercent}%` }" />
           </div>
-          <span>画质优先</span>
+          <span>清晰</span>
         </div>
       </section>
     </div>
 
     <div class="action-bar">
-      <span class="action-hint">输出目录可在右上角“输出设置”中修改，压缩不会覆盖原文件。</span>
-      <button type="button" @click="handleCompress">开始压缩</button>
+      <span class="action-hint">会保留原文件，并在输出目录生成新的压缩结果。</span>
+      <button type="button" class="primary-button" @click="handleCompress">开始压缩</button>
     </div>
   </div>
 </template>
@@ -84,51 +75,63 @@ type CompressionLevel = 'screen' | 'ebook' | 'printer' | 'prepress' | 'default'
 type CompressionLevelMeta = {
   label: string
   value: CompressionLevel
+  short: string
   title: string
   description: string
   scene: string
+  balance: string
   qualityScore: number
 }
 
 const compressionLevelOptions: CompressionLevelMeta[] = [
   {
-    label: '屏幕优先',
+    label: '屏幕',
     value: 'screen',
-    title: '屏幕级压缩',
-    description: '优先减小文件体积，适合快速预览、聊天传输和轻量分享。',
-    scene: '适用场景：预览件、聊天发送、临时上传。',
+    short: '更小',
+    title: '屏幕优先',
+    description: '更偏向减小体积，适合预览、聊天发送和临时分享。',
+    scene: '轻量分享',
+    balance: '体积优先',
     qualityScore: 18,
   },
   {
-    label: '电子书推荐',
+    label: '电子书',
     value: 'ebook',
-    title: '电子书级压缩',
-    description: '在清晰度和体积之间做平衡，通常适合大多数日常办公文档。',
-    scene: '适用场景：日常办公、邮件附件、在线提交。',
+    short: '推荐',
+    title: '电子书级',
+    description: '兼顾清晰度和体积，适合大多数办公文档。',
+    scene: '日常办公',
+    balance: '均衡输出',
     qualityScore: 42,
   },
   {
-    label: '打印质量',
+    label: '打印',
     value: 'printer',
-    title: '打印级压缩',
-    description: '保留更好的打印质量，同时比原文件更节省存储空间。',
-    scene: '适用场景：线下打印、正式材料、存档备份。',
+    short: '更清晰',
+    title: '打印质量',
+    description: '保留更好的打印效果，同时继续控制文件大小。',
+    scene: '打印留档',
+    balance: '清晰优先',
     qualityScore: 64,
   },
   {
-    label: '印前保真',
+    label: '印前',
     value: 'prepress',
-    title: '印前级压缩',
-    description: '尽量保留原始细节，压缩力度较小，更偏向高质量输出。',
-    scene: '适用场景：高质量留档、设计稿件、专业输出。',
+    short: '高保真',
+    title: '印前保真',
+    description: '尽量保留原始细节，适合更高质量的输出场景。',
+    scene: '专业输出',
+    balance: '细节优先',
     qualityScore: 82,
   },
   {
-    label: '默认保留细节',
+    label: '默认',
     value: 'default',
-    title: '默认压缩',
-    description: '更接近原始文档质量，适合对清晰度要求较高的文件。',
-    scene: '适用场景：重要文档、细节较多的资料。',
+    short: '保守',
+    title: '默认模式',
+    description: '更接近原始文件质量，适合对细节更敏感的内容。',
+    scene: '重要文档',
+    balance: '质量优先',
     qualityScore: 100,
   },
 ]
@@ -145,7 +148,7 @@ const emit = defineEmits<{
 
 const dropHover = ref(false)
 
-const currentLevelMeta: any= computed(() => {
+const currentLevelMeta = computed(() => {
   return compressionLevelOptions.find((option) => option.value === compressionLevel) ?? compressionLevelOptions[1]
 })
 
@@ -202,170 +205,179 @@ const handleCompress = () => {
   gap: 16px;
 }
 
-.hero-card {
-  padding: 18px 20px;
-  border-radius: 16px;
-  text-align: left;
-  color: #1f2a37;
-  background: linear-gradient(135deg, #edf6ff 0%, #f7fbff 100%);
-  border: 1px solid #d7e8ff;
-
-  h3 {
-    margin: 8px 0 6px;
-    font-size: 22px;
-  }
-
-  p {
-    margin: 0;
-    color: #5b6472;
-    line-height: 1.6;
-  }
+#dropArea {
+  border: 1px dashed rgba(64, 158, 255, 0.38);
+  border-radius: 22px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(64, 158, 255, 0.1), transparent 60%),
+    linear-gradient(180deg, #fbfdff 0%, #f4f9ff 100%);
+  cursor: pointer;
+  transition: border-color 0.24s ease, transform 0.24s ease, background 0.24s ease;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(64, 158, 255, 0.14);
-  color: #2b6cb0;
-  font-size: 12px;
-  font-weight: 600;
+#dropArea:hover,
+#dropArea.hover {
+  border-color: #409eff;
+  transform: translateY(-1px);
 }
 
-.hero-tags {
+.upload-copy {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+
+  strong {
+    color: #0f172a;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+  }
 
   span {
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(64, 158, 255, 0.18);
-    color: #51606f;
-    font-size: 12px;
+    color: #64748b;
+    font-size: 14px;
   }
 }
 
-#dropArea {
-  border: 2px dashed #aac8ea;
-  border-radius: 14px;
-  padding: 26px 24px;
-  color: #6b7280;
-  transition: all 0.28s ease;
-  cursor: pointer;
-  min-height: 74px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  background: #fcfdff;
-
-  &:hover,
-  &.hover {
-    border-color: #409eff;
-    background: #eef6ff;
-    color: #1f2937;
-
-    #inputPath {
-      color: #409eff;
-    }
-  }
-}
-
-.option-grid {
+.content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
   gap: 14px;
 }
 
-.form-card,
-.info-card {
-  padding: 16px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #e8edf5;
+.surface-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e4edf7;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
   text-align: left;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
-.card-header {
+.section-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
-.card-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(64, 158, 255, 0.1);
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.card-tip,
-.info-scene {
+.section-head h3,
+.summary-card h3 {
+  margin: 10px 0 0;
+  color: #0f172a;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.section-note {
+  color: #94a3b8;
   font-size: 12px;
-  color: #909399;
 }
 
-.level-chips {
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.level-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #dbe8f6;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+  strong {
+    display: block;
+    color: #0f172a;
+    font-size: 16px;
+  }
+
+  span {
+    display: inline-flex;
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 13px;
+  }
+}
+
+.level-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 158, 255, 0.38);
+}
+
+.level-card.active {
+  border-color: #409eff;
+  box-shadow: 0 14px 28px rgba(64, 158, 255, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(64, 158, 255, 0.12), transparent 46%),
+    linear-gradient(180deg, #ffffff 0%, #eef6ff 100%);
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: space-between;
+  background:
+    radial-gradient(circle at top right, rgba(64, 158, 255, 0.16), transparent 38%),
+    linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.summary-card p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.summary-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 12px;
 
   span {
-    padding: 6px 10px;
+    padding: 7px 10px;
     border-radius: 999px;
-    background: #f5f9ff;
-    color: #60758a;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid #dbe8f6;
+    color: #4b5563;
     font-size: 12px;
-    border: 1px solid transparent;
-  }
-
-  .active {
-    background: rgba(64, 158, 255, 0.12);
-    color: #2563eb;
-    border-color: rgba(64, 158, 255, 0.22);
-  }
-}
-
-.info-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  strong {
-    color: #1f2937;
-    font-size: 18px;
-  }
-
-  p {
-    margin: 0;
-    color: #606266;
-    line-height: 1.6;
+    font-weight: 600;
   }
 }
 
 .quality-meter {
-  margin-top: 4px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
   color: #64748b;
+  font-size: 12px;
 }
 
 .quality-track {
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #dbeafe 0%, #e5f4dc 100%);
   overflow: hidden;
+  background: linear-gradient(90deg, #dbeafe 0%, #e5f4dc 100%);
 }
 
 .quality-fill {
@@ -375,51 +387,55 @@ const handleCompress = () => {
 }
 
 .action-bar {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  border: 1px solid #e4edf7;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e9eef5;
 }
 
 .action-hint {
+  color: #64748b;
   font-size: 13px;
-  color: #667085;
+  line-height: 1.6;
   text-align: left;
 }
 
-:deep(.el-select) {
-  width: 100%;
-}
-
-button {
-  background-color: #409eff;
-  color: white;
+.primary-button {
   border: none;
+  border-radius: 12px;
   padding: 12px 22px;
-  border-radius: 10px;
+  background: linear-gradient(135deg, #409eff 0%, #2f7be8 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 16px;
   white-space: nowrap;
-  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-  box-shadow: 0 10px 20px rgba(64, 158, 255, 0.22);
+  box-shadow: 0 14px 28px rgba(64, 158, 255, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-button:hover {
-  background-color: #2f8ef3;
+.primary-button:hover {
   transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(64, 158, 255, 0.28);
+}
+
+@media (max-width: 860px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
-  .option-grid {
+  .level-grid {
     grid-template-columns: 1fr;
   }
 
-  .action-bar,
-  .card-header {
+  .section-head,
+  .action-bar {
     flex-direction: column;
     align-items: stretch;
   }

@@ -1,32 +1,11 @@
-﻿<template>
+<template>
   <div class="home-shell">
     <div class="home-panel">
       <section class="hero-card">
         <div class="hero-copy">
-          <div class="hero-copy__top" v-if="false">
-            <span class="hero-badge">PDF Squeezer</span>
-            <span class="hero-kicker">Local-first</span>
-          </div>
-
+          <span class="hero-badge">Local-first</span>
           <h1>PDF Squeezer</h1>
-          <p>
-            集中处理你的 PDF 文件，选择需要的功能，快速开始操作。
-          </p>
-
-          <!-- <div class="hero-actions">
-            <RouterLink :to="primaryToolPath" class="hero-button hero-button--primary">
-              开始处理
-            </RouterLink>
-            <a href="#tool-grid" class="hero-button hero-button--ghost">
-              查看功能
-            </a>
-          </div> -->
-
-          <div class="hero-notes" v-if="false">
-            <span>{{ toolCount }} 个功能</span>
-            <span>本地处理</span>
-            <span>统一输出目录</span>
-          </div>
+          <p>集中处理你的 PDF 文件，选择需要的功能，快速开始操作。</p>
         </div>
 
         <div class="hero-visual">
@@ -37,33 +16,22 @@
                 <span class="visual-dot visual-dot--yellow" />
                 <span class="visual-dot visual-dot--green" />
               </div>
-              <!-- <span class="visual-window__title">Workspace Preview</span> -->
+              <span class="visual-window__title">Quick Launch</span>
             </div>
 
             <div class="visual-window__body">
               <div class="visual-lead">
-                <span class="visual-lead__badge">Quick Start</span>
-                <strong>一站式 PDF 工具箱</strong>
-                <p>入口更清楚，页面更聚焦。</p>
+                <span class="visual-lead__badge">Home</span>
+                <strong>更轻的入口</strong>
+                <p>只看图标和功能名，先选工具，再进入处理流程。</p>
               </div>
 
               <div class="visual-flow">
                 <div class="flow-chip">选择功能</div>
                 <div class="flow-line" />
-                <div class="flow-chip">拖入文件</div>
+                <div class="flow-chip">上传文件</div>
                 <div class="flow-line" />
                 <div class="flow-chip">导出结果</div>
-              </div>
-
-              <div class="visual-tools" v-if="false">
-                <span
-                  v-for="tool in tools"
-                  :key="tool.id"
-                  class="visual-tool"
-                  :style="{ '--tool-accent': tool.accent }"
-                >
-                  {{ tool.navLabel }}
-                </span>
               </div>
             </div>
           </div>
@@ -78,22 +46,11 @@
           class="tool-card"
           :style="{ '--tool-accent': tool.accent }"
         >
-          <div class="tool-card__top">
-            <span class="tool-card__badge">{{ tool.badge }}</span>
-            <strong>{{ tool.navLabel }}</strong>
+          <div class="tool-card__icon-shell">
+            <img :src="tool.icon" :alt="tool.navLabel" class="tool-card__icon" />
           </div>
 
-          <h2>{{ tool.title }}</h2>
-          <p>{{ tool.description }}</p>
-
-          <div class="tool-card__tags">
-            <span v-for="tag in tool.tags" :key="tag">{{ tag }}</span>
-          </div>
-
-          <div class="tool-card__footer">
-            <span>{{ tool.eyebrow }}</span>
-            <span class="tool-card__cta">进入功能</span>
-          </div>
+          <strong class="tool-card__label">{{ tool.navLabel }}</strong>
         </RouterLink>
       </section>
     </div>
@@ -106,7 +63,6 @@ import { TOOL_CONFIGS } from '@/views/tool-config'
 
 const tools = TOOL_CONFIGS
 const toolCount = computed(() => tools.length)
-const primaryToolPath = computed(() => tools[0]?.path ?? '/')
 </script>
 
 <style scoped lang="scss">
@@ -148,7 +104,7 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
   h1 {
     margin: 14px 0 12px;
     max-width: 620px;
-    font-size: clamp(36px, 5vw, 56px);
+    font-size: clamp(34px, 5vw, 54px);
     line-height: 0.98;
     color: #0f172a;
     letter-spacing: -0.05em;
@@ -163,14 +119,8 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
   }
 }
 
-.hero-copy__top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .hero-badge {
+  width: fit-content;
   display: inline-flex;
   align-items: center;
   padding: 0 14px;
@@ -182,73 +132,6 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.hero-kicker {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(203, 213, 225, 0.8);
-  color: #475569;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 22px;
-}
-
-.hero-button {
-  min-height: 48px;
-  padding: 0 18px;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 700;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.hero-button:hover {
-  transform: translateY(-1px);
-}
-
-.hero-button--primary {
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
-  color: #fff;
-  box-shadow: 0 14px 28px rgba(29, 78, 216, 0.22);
-}
-
-.hero-button--ghost {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(218, 228, 240, 0.9);
-  color: #334155;
-}
-
-.hero-notes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
-
-  span {
-    padding: 8px 12px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(226, 232, 240, 0.92);
-    color: #526072;
-    font-size: 12px;
-    font-weight: 600;
-  }
 }
 
 .hero-visual {
@@ -378,20 +261,27 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
   background: linear-gradient(90deg, rgba(148, 163, 184, 0.3) 0%, rgba(59, 130, 246, 0.45) 100%);
 }
 
-.visual-tools {
-  display: flex;
-  flex-wrap: wrap;
+.visual-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
 }
 
-.visual-tool {
-  padding: 9px 12px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--tool-accent) 10%, white);
+.visual-shortcut {
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, color-mix(in srgb, var(--tool-accent) 8%, white) 100%);
   border: 1px solid color-mix(in srgb, var(--tool-accent) 18%, white);
-  color: #334155;
-  font-size: 12px;
-  font-weight: 700;
+}
+
+.visual-shortcut img {
+  width: 42px;
+  height: 42px;
+  display: block;
 }
 
 .tool-grid {
@@ -401,104 +291,76 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
 }
 
 .tool-card {
-  min-height: 260px;
-  padding: 20px;
-  border-radius: 24px;
+  min-height: 180px;
+  padding: 20px 16px;
+  border-radius: 28px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
   text-decoration: none;
   color: inherit;
-  background: rgba(255, 255, 255, 0.84);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--tool-accent) 12%, white) 0%, transparent 52%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 250, 252, 0.96) 100%);
   border: 1px solid rgba(228, 234, 242, 0.96);
   box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
-.tool-card:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--tool-accent) 32%, white);
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
-}
-
-.tool-card__top {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  text-align: left;
-
-  strong {
-    font-size: 22px;
-    color: #0f172a;
-    letter-spacing: -0.03em;
-  }
-}
-
-.tool-card__badge {
-  width: fit-content;
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
+.tool-card::after {
+  content: '';
+  position: absolute;
+  right: -24px;
+  bottom: -38px;
+  width: 92px;
+  height: 92px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--tool-accent) 12%, white);
-  color: var(--tool-accent);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  background: color-mix(in srgb, var(--tool-accent) 14%, white);
+  filter: blur(10px);
+  opacity: 0.8;
 }
 
-.tool-card h2 {
-  margin: 0;
-  text-align: left;
-  color: #1e293b;
-  font-size: 16px;
-  line-height: 1.5;
+.tool-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--tool-accent) 36%, white);
+  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.14);
 }
 
-.tool-card p {
-  margin: 0;
-  text-align: left;
-  color: #667085;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.tool-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: auto;
-
-  span {
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: #f8fafc;
-    color: #556274;
-    font-size: 11px;
-    border: 1px solid #e6edf5;
-  }
-}
-
-.tool-card__footer {
+.tool-card__icon-shell {
+  width: 92px;
+  height: 92px;
+  border-radius: 28px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  text-align: left;
-
-  span {
-    font-size: 12px;
-    color: #64748b;
-    line-height: 1.5;
-  }
+  justify-content: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, color-mix(in srgb, var(--tool-accent) 8%, white) 100%);
+  border: 1px solid color-mix(in srgb, var(--tool-accent) 18%, white);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 14px 30px color-mix(in srgb, var(--tool-accent) 10%, transparent);
+  position: relative;
+  z-index: 1;
 }
 
-.tool-card__cta {
-  color: var(--tool-accent) !important;
+.tool-card__icon {
+  width: 72px;
+  height: 72px;
+  display: block;
+}
+
+.tool-card__label {
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  color: #0f172a;
+  font-size: 18px;
   font-weight: 700;
-  white-space: nowrap;
+  letter-spacing: -0.03em;
 }
 
 @media (max-width: 1080px) {
@@ -507,7 +369,7 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
   }
 
   .tool-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -520,19 +382,8 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
     padding: 22px;
   }
 
-  .hero-actions {
-    flex-direction: column;
-  }
-
-  .hero-button {
-    width: 100%;
-  }
-
-  .hero-notes {
-    flex-direction: column;
-  }
-
-  .visual-flow {
+  .visual-flow,
+  .visual-shortcuts {
     grid-template-columns: 1fr;
   }
 
@@ -541,7 +392,7 @@ const primaryToolPath = computed(() => tools[0]?.path ?? '/')
   }
 
   .tool-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

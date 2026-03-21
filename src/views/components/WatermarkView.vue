@@ -1,16 +1,5 @@
 <template>
   <div class="tool-panel watermark-panel">
-    <!-- <section class="hero-card hero-card--watermark">
-      <div class="hero-badge">水印工具</div>
-      <h3>为 PDF 批量添加文字或图片水印</h3>
-      <p>支持文字与图片两种水印类型，可设置透明度、角度与铺满方式，适合内部资料与品牌标识。</p>
-      <div class="hero-tags">
-        <span>文字/图片水印</span>
-        <span>批量处理</span>
-        <span>铺满与居中</span>
-      </div>
-    </section> -->
-
     <div
       id="dropArea"
       :class="{ hover: dropHover }"
@@ -19,41 +8,45 @@
       @drop="handleDrop"
       @click="handleClickUpload"
     >
-      <span id="inputPath">点击或拖拽 PDF 文件到这里上传</span>
+      <div class="upload-copy">
+        <strong>上传 PDF</strong>
+        <span>点击或拖拽文件到这里</span>
+      </div>
     </div>
 
     <div class="preview-grid">
       <section class="preview-card">
         <div class="card-header">
-          <span class="card-title">模拟预览</span>
-          <span class="card-tip">根据当前参数模拟单页效果，帮助你快速确认风格</span>
+          <div>
+            <span class="card-kicker">Preview</span>
+            <h3>实时预览</h3>
+          </div>
+          <span class="card-note">{{ previewDescription }}</span>
         </div>
 
         <div class="preview-stage">
           <canvas ref="previewCanvas" class="preview-canvas" width="720" height="980" />
         </div>
 
-        <div class="preview-footer">
-          <span>单页近似预览</span>
-          <span>{{ previewDescription }}</span>
+        <div class="preview-tags">
+          <span>{{ sourceType === 'text' ? '文字水印' : '图片水印' }}</span>
+          <span>{{ placement === 'center' ? '居中' : '铺满' }}</span>
+          <span>透明度 {{ Math.round(opacity * 100) }}%</span>
         </div>
       </section>
 
-      <section class="preview-side-card">
-        <div class="card-header">
-          <span class="card-title">预览说明与设置</span>
-          <span class="card-tip">右侧直接调整参数，左侧实时查看大致效果</span>
-        </div>
-
-        <section class="control-section">
-          <div class="section-header">
-            <span class="section-title">水印内容</span>
-            <span class="section-tip">先选择水印类型，再配置内容</span>
+      <section class="control-panel">
+        <section class="control-card">
+          <div class="card-header">
+            <div>
+              <span class="card-kicker">Content</span>
+              <h3>水印内容</h3>
+            </div>
           </div>
 
           <el-radio-group v-model="sourceType" class="source-type">
-            <el-radio-button label="text">文字水印</el-radio-button>
-            <el-radio-button label="image">图片水印</el-radio-button>
+            <el-radio-button label="text">文字</el-radio-button>
+            <el-radio-button label="image">图片</el-radio-button>
           </el-radio-group>
 
           <div v-if="sourceType === 'text'" class="text-source">
@@ -61,17 +54,19 @@
               v-model="textValue"
               type="textarea"
               :rows="3"
-              placeholder="输入水印文字，可换行"
+              placeholder="输入水印文字"
               maxlength="120"
               show-word-limit
             />
-            <div class="text-controls">
-              <div class="control-item">
-                <span class="control-label">文字颜色</span>
+
+            <div class="inline-grid">
+              <div class="field">
+                <span>颜色</span>
                 <input v-model="textColor" class="color-input" type="color" />
               </div>
-              <div class="control-item">
-                <span class="control-label">字号</span>
+
+              <div class="field">
+                <span>字号</span>
                 <el-input-number v-model="fontSize" :min="18" :max="120" controls-position="right" />
               </div>
             </div>
@@ -79,104 +74,64 @@
 
           <div v-else class="image-source">
             <div class="image-meta">
-              <strong>{{ imageName || '尚未选择水印图片' }}</strong>
+              <strong>{{ imageName || '未选择图片' }}</strong>
               <span>支持 PNG / JPEG</span>
             </div>
-            <button type="button" class="secondary-button" @click="handleSelectImage">
-              选择图片
-            </button>
+
+            <button type="button" class="ghost-button" @click="handleSelectImage">选择图片</button>
             <input ref="imageInput" type="file" accept="image/png,image/jpeg" @change="handleImageChange" hidden />
           </div>
         </section>
 
-        <section class="control-section">
-          <div class="section-header">
-            <span class="section-title">水印样式</span>
-            <span class="section-tip">透明度与角度会作用于全部页面</span>
+        <section class="control-card">
+          <div class="card-header">
+            <div>
+              <span class="card-kicker">Style</span>
+              <h3>显示样式</h3>
+            </div>
           </div>
 
-          <div class="style-row">
-            <span class="control-label">布局方式</span>
+          <div class="field stack">
+            <span>布局</span>
             <el-radio-group v-model="placement" class="placement-group">
               <el-radio-button label="center">居中</el-radio-button>
               <el-radio-button label="tile">铺满</el-radio-button>
             </el-radio-group>
           </div>
 
-          <div class="style-row">
-            <span class="control-label">透明度 {{ Math.round(opacity * 100) }}%</span>
+          <div class="field stack">
+            <span>透明度 {{ Math.round(opacity * 100) }}%</span>
             <el-slider v-model="opacity" :min="0.05" :max="0.6" :step="0.01" />
           </div>
 
-          <div class="style-row">
-            <span class="control-label">大小 {{ Math.round(size * 100) }}%</span>
+          <div class="field stack">
+            <span>大小 {{ Math.round(size * 100) }}%</span>
             <el-slider v-model="size" :min="0.15" :max="0.8" :step="0.01" />
           </div>
 
-          <div class="style-row">
-            <span class="control-label">旋转角度</span>
-            <el-input-number v-model="rotation" :min="-180" :max="180" controls-position="right" />
+          <div class="inline-grid">
+            <div class="field">
+              <span>旋转角度</span>
+              <el-input-number v-model="rotation" :min="-180" :max="180" controls-position="right" />
+            </div>
+
+            <div v-if="placement === 'tile'" class="field">
+              <span>间距</span>
+              <el-input-number v-model="tileGap" :min="0" :max="160" controls-position="right" />
+            </div>
           </div>
 
-          <div v-if="placement === 'tile'" class="style-row">
-            <span class="control-label">铺满间距</span>
-            <el-slider v-model="tileGap" :min="0" :max="160" :step="4" />
+          <div class="quick-tags">
+            <span>{{ sourceType === 'text' ? previewTextSummary : (imageName || '未选图片') }}</span>
+            <span>旋转 {{ rotation }}°</span>
           </div>
         </section>
-
-        <!-- <div class="preview-chip-list">
-          <span>{{ sourceType === 'text' ? '文字水印' : '图片水印' }}</span>
-          <span>{{ placement === 'center' ? '居中布局' : '铺满布局' }}</span>
-          <span>透明度 {{ Math.round(opacity * 100) }}%</span>
-          <span>缩放 {{ Math.round(size * 100) }}%</span>
-          <span>旋转 {{ rotation }}°</span>
-          <span v-if="placement === 'tile'">间距 {{ tileGap }}px</span>
-        </div>
-
-        <div class="preview-note">
-          <strong>当前模拟会体现这些变化</strong>
-          <p>透明度、旋转角度、布局方式、铺满密度和水印内容都会实时反映在左侧预览中，方便你在真正输出前先看整体观感。</p>
-        </div> -->
-
-        <!-- <div v-if="sourceType === 'text'" class="preview-meta-list">
-          <div class="meta-row">
-            <span>文字颜色</span>
-            <strong>{{ textColor.toUpperCase() }}</strong>
-          </div>
-          <div class="meta-row">
-            <span>文字字号</span>
-            <strong>{{ fontSize }} px</strong>
-          </div>
-          <div class="meta-row">
-            <span>文字内容</span>
-            <strong>{{ previewTextSummary }}</strong>
-          </div>
-        </div>
-
-        <div v-else class="preview-meta-list">
-          <div class="meta-row">
-            <span>图片文件</span>
-            <strong>{{ imageName || '未选择' }}</strong>
-          </div>
-          <div class="meta-row">
-            <span>图片格式</span>
-            <strong>{{ imagePayload ? imagePayload.format.toUpperCase() : '--' }}</strong>
-          </div>
-          <div class="meta-row">
-            <span>原始尺寸</span>
-            <strong>{{ imagePayload ? `${imagePayload.width} × ${imagePayload.height}` : '--' }}</strong>
-          </div>
-        </div> -->
       </section>
     </div>
 
     <div class="action-bar">
-      <span class="action-hint">
-        建议先设置输出目录，再执行水印处理，生成文件不会覆盖原 PDF。
-      </span>
-      <button type="button" class="primary-button" @click="handleWatermark">
-        开始加水印
-      </button>
+      <span class="action-hint">会生成新的带水印 PDF，不覆盖原文件。</span>
+      <button type="button" class="primary-button" @click="handleWatermark">开始加水印</button>
     </div>
   </div>
 </template>
@@ -246,7 +201,7 @@ const previewTextSummary = computed(() => {
   const normalized = textValue.value.trim().replace(/\s*\r?\n\s*/g, ' / ')
 
   if (!normalized) {
-    return '未输入'
+    return '未输入文字'
   }
 
   return normalized.length > 18 ? `${normalized.slice(0, 18)}...` : normalized
@@ -254,16 +209,16 @@ const previewTextSummary = computed(() => {
 
 const previewDescription = computed(() => {
   if (sourceType.value === 'image' && !imagePayload.value) {
-    return '选择图片后会在这里展示大致落地效果'
+    return '选择图片后这里会显示效果'
   }
 
   if (sourceType.value === 'text' && !textValue.value.trim()) {
-    return '输入文字后会实时生成模拟水印预览'
+    return '输入文字后会自动生成预览'
   }
 
   return placement.value === 'tile'
-    ? '铺满模式会按当前间距在整页重复排布水印'
-    : '居中模式会在页面中心显示单个水印'
+    ? '当前为铺满布局'
+    : '当前为居中布局'
 })
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
@@ -644,11 +599,11 @@ const drawEmptyPreview = (
 
   ctx.fillStyle = '#be123c'
   ctx.font = `700 22px ${fontFamily.value}`
-  ctx.fillText('预览将在这里显示', boxX + 28, boxY + 52)
+  ctx.fillText('预览会显示在这里', boxX + 28, boxY + 52)
 
   ctx.fillStyle = '#7c5a60'
   ctx.font = `500 16px ${fontFamily.value}`
-  ctx.fillText('完善水印内容后，会模拟最终覆盖在 PDF 上的效果', boxX + 28, boxY + 86)
+  ctx.fillText('先设置内容和样式，再查看最终大致效果', boxX + 28, boxY + 86)
   ctx.restore()
 }
 
@@ -769,132 +724,140 @@ const handleWatermark = async () => {
   gap: 16px;
 }
 
-.hero-card {
-  padding: 18px 20px;
-  border-radius: 16px;
-  text-align: left;
-  color: #1f2a37;
-  background: linear-gradient(135deg, #fff1f2 0%, #fffafc 100%);
-  border: 1px solid #f5c2c7;
-
-  h3 {
-    margin: 8px 0 6px;
-    font-size: 22px;
-  }
-
-  p {
-    margin: 0;
-    color: #6f4e53;
-    line-height: 1.6;
-  }
+#dropArea {
+  border: 1px dashed rgba(244, 63, 94, 0.38);
+  border-radius: 22px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(244, 63, 94, 0.12), transparent 58%),
+    linear-gradient(180deg, #fffafb 0%, #fff2f5 100%);
+  cursor: pointer;
+  transition: border-color 0.24s ease, transform 0.24s ease;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(244, 63, 94, 0.14);
-  color: #be123c;
-  font-size: 12px;
-  font-weight: 600;
+#dropArea:hover,
+#dropArea.hover {
+  border-color: #f43f5e;
+  transform: translateY(-1px);
 }
 
-.hero-tags {
+.upload-copy {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+
+  strong {
+    color: #0f172a;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+  }
 
   span {
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.76);
-    border: 1px solid rgba(244, 63, 94, 0.2);
-    color: #7a4a52;
-    font-size: 12px;
-  }
-}
-
-#dropArea {
-  border: 2px dashed #f3a1ad;
-  border-radius: 14px;
-  padding: 26px 24px;
-  color: #6b7280;
-  transition: all 0.28s ease;
-  cursor: pointer;
-  min-height: 74px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  background: #fff9fb;
-
-  &:hover,
-  &.hover {
-    border-color: #f43f5e;
-    background: #ffe9ee;
-    color: #1f2937;
-
-    #inputPath {
-      color: #e11d48;
-    }
+    color: #64748b;
+    font-size: 14px;
   }
 }
 
 .preview-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
   gap: 14px;
 }
 
 .preview-card,
-.preview-side-card {
-  padding: 16px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #f1e3e5;
+.control-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #f3e3e6;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
   text-align: left;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.preview-card {
+  background:
+    radial-gradient(circle at top right, rgba(244, 63, 94, 0.14), transparent 42%),
+    linear-gradient(180deg, #fffafb 0%, #ffffff 100%);
+}
+
+.control-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-.preview-side-card {
-  background: linear-gradient(180deg, #fffafb 0%, #ffffff 100%);
-}
-
-.card-header,
-.section-header {
+.card-header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 16px;
 }
 
-.card-title,
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
+.card-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(244, 63, 94, 0.12);
+  color: #be123c;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.card-tip,
-.section-tip {
+.card-header h3 {
+  margin: 10px 0 0;
+  color: #0f172a;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.card-note {
+  color: #94a3b8;
   font-size: 12px;
-  color: #909399;
 }
 
-.control-section {
+.preview-stage {
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff6f7 0%, #fffdfd 100%);
+  border: 1px solid #f6d3d9;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 14px;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-canvas {
+  width: min(100%, 420px);
+  height: auto;
+  aspect-ratio: 720 / 980;
+  display: block;
+  border-radius: 20px;
+}
+
+.preview-tags,
+.quick-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-tags {
+  margin-top: 14px;
+}
+
+.preview-tags span,
+.quick-tags span {
+  padding: 7px 10px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid #f3e3e6;
+  color: #51616f;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .source-type,
@@ -903,31 +866,34 @@ const handleWatermark = async () => {
 }
 
 .text-source,
-.text-controls {
-  display: grid;
+.field.stack {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.text-controls {
+.inline-grid {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.control-item,
-.style-row {
+.field {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
 
-.control-label {
-  font-size: 13px;
-  color: #667085;
+  span {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+  }
 }
 
 .color-input {
   width: 100%;
-  height: 36px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
   padding: 0 6px;
   background: #fff;
@@ -947,160 +913,72 @@ const handleWatermark = async () => {
 
   strong {
     color: #1f2937;
-    font-size: 14px;
+    font-size: 15px;
   }
 
   span {
-    font-size: 12px;
     color: #94a3b8;
-  }
-}
-
-.secondary-button {
-  background-color: #fff;
-  color: #e11d48;
-  border: 1px solid #f3a1ad;
-  padding: 10px 16px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.secondary-button:hover {
-  background: #ffe9ee;
-}
-
-.preview-stage {
-  padding: 18px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #fff6f7 0%, #fffdfd 100%);
-  border: 1px solid #f6d3d9;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.preview-canvas {
-  width: min(100%, 420px);
-  height: auto;
-  aspect-ratio: 720 / 980;
-  display: block;
-  border-radius: 20px;
-}
-
-.preview-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 12px;
-  color: #7c5a60;
-}
-
-.preview-chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  span {
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: #fff3f5;
-    border: 1px solid #f8d7de;
-    color: #9f2947;
     font-size: 12px;
-    font-weight: 500;
   }
 }
 
-.preview-note {
-  padding: 14px;
-  border-radius: 14px;
-  background: #fff5f6;
-  border: 1px solid #f6d3d9;
-
-  strong {
-    display: block;
-    margin-bottom: 8px;
-    color: #9f2947;
-    font-size: 14px;
-  }
-
-  p {
-    margin: 0;
-    color: #7c5a60;
-    font-size: 13px;
-    line-height: 1.7;
-  }
-}
-
-.preview-meta-list {
-  display: grid;
-  gap: 10px;
-}
-
-.meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 14px;
+.ghost-button {
+  border: none;
   border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #f1e3e5;
+  padding: 10px 16px;
+  background: #fff1f2;
+  color: #e11d48;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
 
-  span {
-    font-size: 13px;
-    color: #64748b;
-  }
-
-  strong {
-    color: #1f2937;
-    font-size: 13px;
-    text-align: right;
-    word-break: break-word;
-  }
+.ghost-button:hover {
+  transform: translateY(-1px);
+  background: #ffe6eb;
 }
 
 .action-bar {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffafb 0%, #ffffff 100%);
+  border: 1px solid #f3e3e6;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #fff5f6;
-  border: 1px solid #f6d3d9;
 }
 
 .action-hint {
+  color: #64748b;
   font-size: 13px;
-  color: #667085;
+  line-height: 1.6;
   text-align: left;
 }
 
 .primary-button {
-  background-color: #f43f5e;
-  color: white;
   border: none;
+  border-radius: 12px;
   padding: 12px 22px;
-  border-radius: 10px;
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 16px;
   white-space: nowrap;
-  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-  box-shadow: 0 10px 20px rgba(244, 63, 94, 0.22);
+  box-shadow: 0 14px 28px rgba(244, 63, 94, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .primary-button:hover {
-  background-color: #e11d48;
   transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(244, 63, 94, 0.28);
 }
 
 :deep(.el-input-number) {
-  width: 140px;
+  width: 100%;
 }
 
 :deep(.el-slider) {
@@ -1127,16 +1005,13 @@ const handleWatermark = async () => {
 }
 
 @media (max-width: 720px) {
-  .text-controls {
+  .inline-grid {
     grid-template-columns: 1fr;
   }
 
   .image-source,
-  .action-bar,
-  .preview-footer,
-  .meta-row,
   .card-header,
-  .section-header {
+  .action-bar {
     flex-direction: column;
     align-items: stretch;
   }
